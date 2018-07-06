@@ -9,18 +9,18 @@ class Route extends User
      *
      * @return string
      */
-    public function key() : string
+    public function key(): string
     {
         $prefix = parent::key();
 
         $route = $this->request->route();
 
-        if( $name = $route->getName() ) {
+        if ($name = $route->getName()) {
             return $prefix.':'.sha1($name);
         }
 
         $class = $route->getAction('uses');
-        if( ! is_null($class) && is_string($class) ) {
+        if ( ! is_null($class) && is_string($class)) {
             return $prefix.':'.sha1($class);
         }
 

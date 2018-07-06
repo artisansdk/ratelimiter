@@ -9,26 +9,26 @@ interface Resolver
      *
      * @return string
      */
-    public function key() : string;
+    public function key(): string;
 
     /**
      * Get the max number of requests allowed by the rate limiter.
      *
      * @return int
      */
-    public function max() : int;
+    public function max(): int;
 
     /**
      * Get the replenish rate in requests per second for the rate limiter.
      *
      * @return float
      */
-    public function rate() : float;
+    public function rate(): float;
 
     /**
      * Get the duration the rate limiter will lock out for exceeding the limit.
      *
      * @return int
      */
-    public function duration() : int;
+    public function duration(): int;
 }

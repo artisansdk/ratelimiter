@@ -2,9 +2,9 @@
 
 namespace ArtisanSDK\RateLimiter\Resolvers;
 
+use ArtisanSDK\RateLimiter\Resolver;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
-use ArtisanSDK\RateLimiter\Resolver;
 
 class User implements Resolver
 {
@@ -12,9 +12,9 @@ class User implements Resolver
      * Setup the resolver.
      *
      * @param \Illuminate\Http\Request $request
-     * @param integer $max
-     * @param integer $rate
-     * @param integer $duration
+     * @param int                      $max
+     * @param int                      $rate
+     * @param int                      $duration
      */
     public function __construct(Request $request, $max = 60, $rate = 1, $duration = 1)
     {
@@ -31,7 +31,7 @@ class User implements Resolver
      *
      * @return string
      */
-    public function key() : string
+    public function key(): string
     {
         if ($user = $this->user()) {
             return sha1($user->getAuthIdentifier());
@@ -49,7 +49,7 @@ class User implements Resolver
      *
      * @return int
      */
-    public function max() : int
+    public function max(): int
     {
         return $this->max;
     }
@@ -59,7 +59,7 @@ class User implements Resolver
      *
      * @return float
      */
-    public function rate() : float
+    public function rate(): float
     {
         return $this->rate;
     }
@@ -69,7 +69,7 @@ class User implements Resolver
      *
      * @return int
      */
-    public function duration() : int
+    public function duration(): int
     {
         return $this->duration;
     }
@@ -77,17 +77,17 @@ class User implements Resolver
     /**
      * Parse the parameter value if the user is authenticated or not.
      *
-     * @param  int|string $parameter
+     * @param int|string $parameter
      *
      * @return int|float
      */
     protected function parse($parameter)
     {
-        if (stripos($parameter, '|') !== false) {
+        if (false !== stripos($parameter, '|')) {
             $parameter = explode('|', $parameter, 2)[$this->user() ? 1 : 0];
         }
 
-        if (! is_numeric($parameter) && $this->user()) {
+        if ( ! is_numeric($parameter) && $this->user()) {
             $parameter = $this->parse($this->user()->{$parameter});
         }
 

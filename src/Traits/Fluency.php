@@ -21,6 +21,7 @@ trait Fluency
             return $this->$property;
         }
         $this->$property = $value;
+
         return $this;
     }
 }
