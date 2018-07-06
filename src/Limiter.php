@@ -105,7 +105,7 @@ class Limiter implements Contract
     public function hasTimeout(): bool
     {
         foreach ($this->buckets as $bucket) {
-            if ($this->cache->has($this->getTimerKey($bucket->key()))) {
+            if ($this->cache->has($this->getTimeoutKey($bucket->key()))) {
                 return true;
             }
         }
@@ -125,7 +125,7 @@ class Limiter implements Contract
         }
 
         $this->cache->put(
-            $this->getTimerKey(),
+            $this->getTimeoutKey(),
             (int) $this->lastBucket()->timer() + ($duration * 60),
             $duration
         );
@@ -199,7 +199,7 @@ class Limiter implements Contract
     {
         $this->reset();
 
-        $this->cache->forget($this->getTimerKey());
+        $this->cache->forget($this->getTimeoutKey());
     }
 
     /**
@@ -209,17 +209,17 @@ class Limiter implements Contract
      */
     public function backoff(): int
     {
-        return max(0, (int) $this->cache->get($this->getTimerKey()) - Carbon::now()->getTimestamp());
+        return max(0, (int) $this->cache->get($this->getTimeoutKey()) - Carbon::now()->getTimestamp());
     }
 
     /**
-     * Get the lock out timer key.
+     * Get the timeout key.
      *
      * @param string $key
      *
      * @return string
      */
-    protected function getTimerKey(string $key = null): string
+    protected function getTimeoutKey(string $key = null): string
     {
         $key = $key ?? $this->lastBucket()->key();
 
