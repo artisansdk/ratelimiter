@@ -60,17 +60,24 @@ class Limiter implements Contract
      */
     public function configure(string $key, int $max, $rate)
     {
-        if ($this->lastBucket()->key() !== $key) {
+        $bucket = $this->lastBucket();
+
+        $settings = [
+            'drips' => $bucket->drips(),
+            'timer' => $bucket->timer(),
+        ];
+
+        if ($bucket->key() !== $key) {
             $this->reset();
         }
 
         $original = array_pop($this->buckets);
 
+        if ($existing = $this->cache->get($key)) {
+            $settings = array_merge($settings, $existing, compact('max', 'rate'));
+        }
         $configured = (new $original($key, $max, $rate))
-            ->configure([
-                'drips' => $original->drips(),
-                'timer' => $original->timer(),
-            ]);
+            ->configure($settings);
 
         array_push($this->buckets, $configured);
 
