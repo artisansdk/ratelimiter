@@ -1,6 +1,6 @@
 # Rate Limiter
 
-A rate limiter for HTTP requests with middleware controls for route-level granularity.
+A leaky bucket rate limiter and middleware controls for route-level granularity.
 
 ## Table of Contents
 

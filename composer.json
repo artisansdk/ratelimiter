@@ -1,6 +1,6 @@
 {
     "name": "artisansdk/ratelimiter",
-    "description": "A rate limiter for HTTP requests with middleware controls for route-level granularity.",
+    "description": "A leaky bucket rate limiter and middleware controls for route-level granularity.",
     "type": "library",
     "license": "MIT",
     "authors": [
