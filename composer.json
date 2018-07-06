@@ -1,0 +1,23 @@
+{
+    "name": "artisansdk/ratelimiter",
+    "description": "A rate limiter for HTTP requests with middleware controls for route-level granularity.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel LaBarge",
+            "email": "daniel@artisanscollaborative.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "illuminate/contracts": "^5.0",
+        "nesbot/carbon": "^1.32",
+        "symfony/http-kernel": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ArtisanSDK\\RateLimiter\\": "src/"
+        }
+    }
+}
