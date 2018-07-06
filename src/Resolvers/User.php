@@ -3,25 +3,61 @@
 namespace ArtisanSdk\RateLimiter\Resolvers;
 
 use ArtisanSdk\RateLimiter\Contracts\Resolver;
+use Closure;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 
 class User implements Resolver
 {
     /**
+     * The request available to the resolver.
+     *
+     * @var \Illuminate\Http\Request
+     */
+    protected $request;
+
+    /**
+     * The max number of requests allowed by the rate limiter.
+     *
+     * @var int|string
+     */
+    protected $max;
+
+    /**
+     * The replenish rate in requests per second for the rate limiter.
+     *
+     * @var int|string
+     */
+    protected $rate;
+
+    /**
+     * The duration in minutes the rate limiter will timeout.
+     *
+     * @var int|string
+     */
+    protected $duration;
+
+    /**
+     * The user resolver closure.
+     *
+     * @var \Closure
+     */
+    protected $userResolver;
+
+    /**
      * Setup the resolver.
      *
      * @param \Illuminate\Http\Request $request
-     * @param int                      $max
-     * @param int                      $rate
-     * @param int                      $duration
+     * @param int|string               $max
+     * @param int|float|string         $rate
+     * @param int|string               $duration
      */
     public function __construct(Request $request, $max = 60, $rate = 1, $duration = 1)
     {
         $this->request = $request;
-        $this->max = (int) $this->parse($max);
-        $this->rate = (float) $this->parse($rate);
-        $this->duration = (int) $this->parse($duration);
+        $this->max = $max;
+        $this->rate = $rate;
+        $this->duration = $duration;
     }
 
     /**
@@ -33,7 +69,7 @@ class User implements Resolver
      */
     public function key(): string
     {
-        if ($user = $this->user()) {
+        if ($user = $this->resolveUser()) {
             return sha1($user->getAuthIdentifier());
         }
 
@@ -51,7 +87,7 @@ class User implements Resolver
      */
     public function max(): int
     {
-        return $this->max;
+        return (int) $this->parse($this->max);
     }
 
     /**
@@ -61,17 +97,17 @@ class User implements Resolver
      */
     public function rate(): float
     {
-        return $this->rate;
+        return (float) $this->parse($this->rate);
     }
 
     /**
-     * Get the duration the rate limiter will lock out for exceeding the limit.
+     * Get the duration in minutes the rate limiter will timeout.
      *
      * @return int
      */
     public function duration(): int
     {
-        return $this->duration;
+        return (int) $this->parse($this->duration);
     }
 
     /**
@@ -84,23 +120,35 @@ class User implements Resolver
     protected function parse($parameter)
     {
         if (false !== stripos($parameter, '|')) {
-            $parameter = explode('|', $parameter, 2)[$this->user() ? 1 : 0];
+            $parameter = explode('|', $parameter, 2)[$this->resolveUser() ? 1 : 0];
         }
 
-        if ( ! is_numeric($parameter) && $this->user()) {
-            $parameter = $this->parse($this->user()->{$parameter});
+        if ( ! is_numeric($parameter) && $this->resolveUser()) {
+            return $this->resolveUser()->{$parameter};
         }
 
         return $parameter;
     }
 
     /**
-     * Get the user for the request.
+     * Resolve the user from the request.
      *
      * @return mixed
      */
-    protected function user()
+    protected function resolveuser()
     {
-        return $this->request->user();
+        return $this->userResolver
+                ? call_user_func($this->userResolver, $this->request)
+                : $this->request->user();
+    }
+
+    /**
+     * Set the user resolver.
+     *
+     * @param \Closure $resolver
+     */
+    public function setUserResolver(Closure $resolver)
+    {
+        $this->userResolver = $resolver;
     }
 }
