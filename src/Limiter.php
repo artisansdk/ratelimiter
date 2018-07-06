@@ -1,8 +1,8 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter;
+namespace ArtisanSdk\RateLimiter;
 
-use ArtisanSDK\RateLimiter\Contracts\Limiter as Contract;
+use ArtisanSdk\RateLimiter\Contracts\Limiter as Contract;
 use Carbon\Carbon;
 use Illuminate\Contracts\Cache\Repository as Cache;
 
@@ -29,7 +29,7 @@ class Limiter implements Contract
      * Create a new rate limiter instance.
      *
      * @param \Illuminate\Contracts\Cache\Repository $cache
-     * @param \ArtisanSDK\RateLimiter\Bucket         $bucket
+     * @param \ArtisanSdk\RateLimiter\Bucket         $bucket
      */
     public function __construct(Cache $cache, Bucket $bucket)
     {
@@ -55,7 +55,7 @@ class Limiter implements Contract
      * @param int       $max  hits against the limiter
      * @param int|float $rate in which limiter decays or leaks
      *
-     * @return \ArtisanSDK\RateLimiter\Contracts\Limiter
+     * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
     public function config(string $key, int $max, $rate)
     {

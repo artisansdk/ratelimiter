@@ -1,8 +1,8 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter\Resolvers;
+namespace ArtisanSdk\RateLimiter\Resolvers;
 
-use ArtisanSDK\RateLimiter\Resolver;
+use ArtisanSdk\RateLimiter\Contracts\Resolver;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 

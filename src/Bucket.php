@@ -1,8 +1,8 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter;
+namespace ArtisanSdk\RateLimiter;
 
-use ArtisanSDK\RateLimiter\Traits\Fluency;
+use ArtisanSdk\RateLimiter\Traits\Fluency;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
@@ -10,7 +10,7 @@ use JsonSerializable;
 /**
  * Leak Bucket.
  */
-class Bucket implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
+class Bucket implements Arrayable, Jsonable, JsonSerializable
 {
     use Fluency;
 

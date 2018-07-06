@@ -31,12 +31,12 @@
     },
     "autoload": {
         "psr-4": {
-            "ArtisanSDK\\RateLimiter\\": "src/"
+            "ArtisanSdk\\RateLimiter\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "ArtisanSDK\\Tests\\": "tests/"
+            "ArtisanSdk\\RateLimiter\\Tests\\": "tests/"
         }
     },
     "scripts": {

@@ -1,6 +1,6 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter\Contracts;
+namespace ArtisanSdk\RateLimiter\Contracts;
 
 interface Limiter
 {
@@ -11,7 +11,7 @@ interface Limiter
      * @param int       $max  hits against the limiter
      * @param int|float $rate in which limiter decays or leaks
      *
-     * @return \ArtisanSDK\RateLimiter\Contracts\Limiter
+     * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
     public function config(string $key, int $max, $rate);
 

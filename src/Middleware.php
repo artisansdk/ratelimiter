@@ -1,9 +1,9 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter;
+namespace ArtisanSdk\RateLimiter;
 
-use ArtisanSDK\RateLimiter\Contracts\Resolver;
-use ArtisanSDK\RateLimiter\Resolvers\User;
+use ArtisanSdk\RateLimiter\Contracts\Resolver;
+use ArtisanSdk\RateLimiter\Resolvers\User;
 use Closure;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,22 +20,22 @@ class Middleware
     /**
      * The rate limiter implementation.
      *
-     * @var \ArtisanSDK\RateLimiter\Contracts\Limiter
+     * @var \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
     protected $limiter;
 
     /**
      * The default request resolver.
      *
-     * @var \ArtisanSDK\RateLimiter\Contracts\Resolver
+     * @var \ArtisanSdk\RateLimiter\Contracts\Resolver
      */
     protected $resolver;
 
     /**
      * Inject the rate limiter dependencies.
      *
-     * @param \ArtisanSDK\RateLimiter\Contracts\Limiter  $limiter
-     * @param \ArtisanSDK\RateLimiter\Contracts\Resolver $resolver
+     * @param \ArtisanSdk\RateLimiter\Contracts\Limiter  $limiter
+     * @param \ArtisanSdk\RateLimiter\Contracts\Resolver $resolver
      */
     public function __construct(Limiter $limiter, Resolver $resolver = null)
     {
@@ -49,7 +49,7 @@ class Middleware
      * @param \Illuminate\Http\Request $request
      * @param \Closure                 $next
      *
-     * @throws \ArtisanSDK\RateLimiter\Exception
+     * @throws \ArtisanSdk\RateLimiter\Exception
      * @throws \InvalidArgumentException
      *
      * @return mixed
@@ -89,7 +89,7 @@ class Middleware
      * @param \Illuminate\Http\Request $request
      * @param array                    $args
      *
-     * @return \ArtisanSDK\RateLimiter\Contracts\Resolver
+     * @return \ArtisanSdk\RateLimiter\Contracts\Resolver
      */
     protected function makeResolver(Request $request, array $args = []): Resolver
     {
@@ -114,7 +114,7 @@ class Middleware
      * @param int $remaining hits allowed
      * @param int $backoff   before next hit should be attempted
      *
-     * @return \ArtisanSDK\RateLimiter\Exception
+     * @return \ArtisanSdk\RateLimiter\Exception
      */
     protected function buildException(int $limit, int $remaining, int $backoff): Exception
     {

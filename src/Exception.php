@@ -1,6 +1,6 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter;
+namespace ArtisanSdk\RateLimiter;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Response;

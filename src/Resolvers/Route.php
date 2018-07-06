@@ -1,6 +1,6 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter\Resolvers;
+namespace ArtisanSdk\RateLimiter\Resolvers;
 
 class Route extends User
 {

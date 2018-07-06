@@ -1,6 +1,6 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter\Traits;
+namespace ArtisanSdk\RateLimiter\Traits;
 
 trait Fluency
 {

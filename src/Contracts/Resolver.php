@@ -1,6 +1,6 @@
 <?php
 
-namespace ArtisanSDK\RateLimiter\Contracts;
+namespace ArtisanSdk\RateLimiter\Contracts;
 
 interface Resolver
 {
