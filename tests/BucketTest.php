@@ -12,7 +12,7 @@ class BucketTest extends TestCase
      */
     public function testConstruct()
     {
-        $bucket = new Bucket('default');
+        $bucket = new Bucket();
         $this->assertSame('default', $bucket->key());
         $this->assertSame(60, $bucket->max());
         $this->assertSame(1.0, $bucket->rate());
@@ -43,7 +43,7 @@ class BucketTest extends TestCase
             'drips' => 8,
         ];
 
-        $bucket = (new Bucket('default'))
+        $bucket = (new Bucket())
             ->configure($settings);
 
         $this->assertSame(
@@ -63,7 +63,7 @@ class BucketTest extends TestCase
      */
     public function testToJson()
     {
-        $bucket = (new Bucket('default'))
+        $bucket = (new Bucket())
             ->timer($time = time());
 
         $this->assertJson(
@@ -79,7 +79,7 @@ class BucketTest extends TestCase
     public function testLeak()
     {
         $time = (float) Carbon::now()->subSeconds(5)->getTimestamp();
-        $bucket = (new Bucket('default'))
+        $bucket = (new Bucket())
             ->timer($time)
             ->fill(10);
 
@@ -99,7 +99,7 @@ class BucketTest extends TestCase
      */
     public function testCapacity()
     {
-        $bucket = new Bucket('default', 10);
+        $bucket = new Bucket('foo', 10);
 
         $bucket = $bucket->fill(10);
         $this->assertTrue($bucket->isFull(), 'The bucket should be full if the max capacity is 10 and it was filled with 10 drips.');
@@ -120,7 +120,7 @@ class BucketTest extends TestCase
     public function testDuration()
     {
         $time = microtime(true) - 10;
-        $bucket = new Bucket('default', 50, 0.1);
+        $bucket = new Bucket('foo', 50, 0.1);
         $bucket = $bucket->timer($time)->fill(22);
 
         $this->assertSame(28, $bucket->remaining(), 'Out of a capacity of 50, the bucket was filled with 22 drips, allowing for 28 remaining drips to be added.');

@@ -60,7 +60,7 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      * @param int       $max  capacity
      * @param int|float $rate of leak per second
      */
-    public function __construct(string $key, int $max = 60, $rate = 1)
+    public function __construct(string $key = 'default', int $max = 60, $rate = 1)
     {
         $this->key = $key;
         $this->configure(compact('max', 'rate'))->reset();

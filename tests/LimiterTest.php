@@ -82,16 +82,16 @@ class LimiterTest extends TestCase
     {
         $cache = new Cache();
         $time = Carbon::now();
-        $bucket = (new Bucket('default'))->timer($time->getTimestamp());
+        $bucket = (new Bucket('foo'))->timer($time->getTimestamp());
         $limiter = new Limiter($cache, $bucket);
         $limiter->timeout();
 
-        $this->assertSame($time->addMinutes(1)->getTimestamp(), (int) $cache->get('default:timeout'), 'The timeout should have been set as a timestamp 1 minute in the future.');
+        $this->assertSame($time->addMinutes(1)->getTimestamp(), (int) $cache->get('foo:timeout'), 'The timeout should have been set as a timestamp 1 minute in the future.');
         $this->assertSame(60, $limiter->backoff(), 'The timeout should have set the backoff duration to be 60 seconds.');
 
-        $timer = $cache->get('default:timeout');
+        $timer = $cache->get('foo:timeout');
         $limiter->timeout(10);
-        $this->assertSame($timer, $cache->get('default:timeout'), 'The timeout should not have changed because calling timeout on the rate limiter more than once should have no effect.');
+        $this->assertSame($timer, $cache->get('foo:timeout'), 'The timeout should not have changed because calling timeout on the rate limiter more than once should have no effect.');
     }
 
     /**

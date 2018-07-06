@@ -23,7 +23,7 @@ class MiddlewareTest extends TestCase
     public function testResponseHasXRateHeaders()
     {
         $cache = new Cache();
-        $limiter = new Limiter($cache, new Bucket('default'));
+        $limiter = new Limiter($cache, new Bucket());
         $resolver = new Resolver();
         $middleware = new Middleware($limiter, $resolver);
         $request = Request::createFromGlobals();
@@ -103,7 +103,7 @@ class MiddlewareTest extends TestCase
     public function testInvalidResolver()
     {
         $cache = new Cache();
-        $limiter = new Limiter($cache, new Bucket('default'));
+        $limiter = new Limiter($cache, new Bucket());
         $resolver = new stdClass();
         $middleware = new Middleware($limiter, $resolver);
         $next = function ($request) { return new Response(); };
