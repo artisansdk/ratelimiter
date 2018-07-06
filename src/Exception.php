@@ -2,8 +2,8 @@
 
 namespace ArtisanSdk\RateLimiter;
 
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Response;
 
 class Exception extends HttpException
 {
