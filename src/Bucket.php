@@ -133,6 +133,20 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
     }
 
     /**
+     * Get the duration in seconds before the bucket is fully drained.
+     *
+     * @return float
+     */
+    public function duration(): float
+    {
+        return (float) max(0,
+            microtime(true)
+            + ($this->drips() / $this->rate())
+            - $this->timer()
+        );
+    }
+
+    /**
      * Is the bucket full?
      *
      * @return bool

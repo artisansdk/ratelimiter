@@ -5,7 +5,7 @@ namespace ArtisanSdk\RateLimiter\Contracts;
 interface Limiter
 {
     /**
-     * Determine if the limit threshold has been exceeded.
+     * Configure the limiter.
      *
      * @param string    $key  for the rate
      * @param int       $max  hits against the limiter
@@ -13,7 +13,7 @@ interface Limiter
      *
      * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
-    public function config(string $key, int $max, $rate);
+    public function configure(string $key, int $max, $rate);
 
     /**
      * Determine if the limit threshold has been exceeded.

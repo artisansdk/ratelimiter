@@ -113,4 +113,22 @@ class BucketTest extends TestCase
         $bucket = $bucket->reset()->fill(1);
         $this->assertFalse($bucket->isEmpty(), 'The bucket should not be empty if the max capacity is 10 and it was filled with at least 1 drip.');
     }
+
+    /**
+     * Test that the bucket's drain time can be calculated.
+     */
+    public function testDuration()
+    {
+        $time = microtime(true) - 10;
+        $bucket = new Bucket('default', 50, 0.1);
+        $bucket = $bucket->timer($time)->fill(22);
+
+        $this->assertSame(28, $bucket->remaining(), 'Out of a capacity of 50, the bucket was filled with 22 drips, allowing for 28 remaining drips to be added.');
+        $this->assertSame(230, (int) $bucket->duration(), 'The drain time for the 22 of 50 drips at 1 leak every 10 seconds (0.1 r/s) should be 240 seconds but 10 seconds have elapsed so it should be 230 seconds.');
+
+        $bucket->leak();
+        $this->assertSame(21, $bucket->drips(), 'The bucket should have leaked 1 drip out of the 28 drips leaving 21 drips in the bucket.');
+        $this->assertSame(29, $bucket->remaining(), 'The bucket should have leaked 1 drip out of the 28 drips leaving 29 drips of remaining capacity in the bucket.');
+        $this->assertSame(210, (int) $bucket->duration(), 'The drain time for the 21 of 50 drips at 1 leak every 10 seconds (0.1 r/s) should be 210 seconds.');
+    }
 }
