@@ -60,11 +60,19 @@ class Limiter implements Contract
      */
     public function configure(string $key, int $max, $rate)
     {
-        $this->reset();
+        if ($this->lastBucket()->key() !== $key) {
+            $this->reset();
+        }
 
-        $bucket = array_pop($this->buckets);
+        $original = array_pop($this->buckets);
 
-        array_push($this->buckets, new $bucket($key, $max, $rate));
+        $configured = (new $original($key, $max, $rate))
+            ->configure([
+                'drips' => $original->drips(),
+                'timer' => $original->timer(),
+            ]);
+
+        array_push($this->buckets, $configured);
 
         return $this;
     }
@@ -116,9 +124,11 @@ class Limiter implements Contract
             return;
         }
 
-        $bucket = $this->lastBucket();
-        $timer = $this->getTimerKey($bucket->key());
-        $this->cache->put($timer, ceil($bucket->timer() + ($duration * 60)), $duration);
+        $this->cache->put(
+            $this->getTimerKey(),
+            (int) $this->lastBucket()->timer() + ($duration * 60),
+            $duration
+        );
     }
 
     /**
@@ -130,7 +140,11 @@ class Limiter implements Contract
     {
         foreach ($this->buckets as $bucket) {
             $bucket->fill();
-            $this->cache->put($bucket->key(), $bucket->toArray(), ceil($bucket->duration() / 60));
+            $this->cache->put(
+                $bucket->key(),
+                $bucket->toArray(),
+                ceil($bucket->duration() / 60)
+            );
         }
 
         return $bucket->drips();
@@ -185,9 +199,7 @@ class Limiter implements Contract
     {
         $this->reset();
 
-        $timer = $this->getTimerKey($this->lastBucket()->key());
-
-        $this->cache->forget($timer);
+        $this->cache->forget($this->getTimerKey());
     }
 
     /**
@@ -197,9 +209,7 @@ class Limiter implements Contract
      */
     public function backoff(): int
     {
-        $timer = $this->getTimerKey($this->lastBucket()->key());
-
-        return max(0, (int) $this->cache->get($timer) - Carbon::now()->getTimestamp());
+        return max(0, (int) $this->cache->get($this->getTimerKey()) - Carbon::now()->getTimestamp());
     }
 
     /**
@@ -209,8 +219,10 @@ class Limiter implements Contract
      *
      * @return string
      */
-    protected function getTimerKey(string $key): string
+    protected function getTimerKey(string $key = null): string
     {
+        $key = $key ?? $this->lastBucket()->key();
+
         return $key.':timeout';
     }
 

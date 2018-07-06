@@ -26,7 +26,7 @@ interface Resolver
     public function rate(): float;
 
     /**
-     * Get the duration the rate limiter will lock out for exceeding the limit.
+     * Get the duration in minutes the rate limiter will timeout.
      *
      * @return int
      */

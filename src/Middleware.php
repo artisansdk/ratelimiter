@@ -4,7 +4,10 @@ namespace ArtisanSdk\RateLimiter;
 
 use ArtisanSdk\RateLimiter\Contracts\Resolver;
 use ArtisanSdk\RateLimiter\Resolvers\User;
+use Carbon\Carbon;
 use Closure;
+use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -34,10 +37,10 @@ class Middleware
     /**
      * Inject the rate limiter dependencies.
      *
-     * @param \ArtisanSdk\RateLimiter\Contracts\Limiter  $limiter
-     * @param \ArtisanSdk\RateLimiter\Contracts\Resolver $resolver
+     * @param \ArtisanSdk\RateLimiter\Contracts\Limiter         $limiter
+     * @param string|\ArtisanSdk\RateLimiter\Contracts\Resolver $resolver
      */
-    public function __construct(Limiter $limiter, Resolver $resolver = null)
+    public function __construct(Limiter $limiter, $resolver = null)
     {
         $this->limiter = $limiter;
         $this->resolver = $resolver ?? User::class;
@@ -50,7 +53,6 @@ class Middleware
      * @param \Closure                 $next
      *
      * @throws \ArtisanSdk\RateLimiter\Exception
-     * @throws \InvalidArgumentException
      *
      * @return mixed
      */
@@ -58,11 +60,7 @@ class Middleware
     {
         $resolver = $this->makeResolver($request, $args);
 
-        $limiter = $this->limiter->config(
-            $resolver->key(),
-            $resolver->max(),
-            $resolver->rate()
-        );
+        $limiter = $this->configureLimiter($resolver);
 
         if ($limiter->exceeded()) {
             $limiter->timeout($resolver->duration());
@@ -89,22 +87,42 @@ class Middleware
      * @param \Illuminate\Http\Request $request
      * @param array                    $args
      *
+     * @throws \InvalidArgumentException for an invalid resolver class
+     *
      * @return \ArtisanSdk\RateLimiter\Contracts\Resolver
      */
     protected function makeResolver(Request $request, array $args = []): Resolver
     {
-        $class = array_unshift($args);
+        $class = array_shift($args);
         if (is_null($class) || ! class_exists($class)) {
-            array_shift($args, $class);
+            array_unshift($args, $class);
             $class = $this->resolver;
         }
 
         $resolver = new $class($request, ...$args);
         if ( ! $resolver instanceof Resolver) {
-            throw new InvalidArgumentException(get_class($resolver).' must be an instance of '.Resolver::class);
+            throw new InvalidArgumentException(get_class($resolver).' must be an instance of '.Resolver::class.'.');
         }
 
         return $resolver;
+    }
+
+    /**
+     * Configure the limiter from the resolver.
+     *
+     * @param \ArtisanSdk\RateLimiter\Contracts\Resolver $resolver
+     *
+     * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
+     */
+    protected function configureLimiter(Resolver $resolver): Limiter
+    {
+        $this->limiter->configure(
+            $resolver->key(),
+            $resolver->max(),
+            $resolver->rate()
+        );
+
+        return $this->limiter;
     }
 
     /**
