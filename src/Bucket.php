@@ -62,22 +62,18 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      */
     public function __construct(string $key, int $max = 60, $rate = 1)
     {
-        $this->key($key)
-            ->max($max)
-            ->rate($rate)
-            ->reset();
+        $this->key = $key;
+        $this->configure(compact('max', 'rate'))->reset();
     }
 
     /**
-     * Get or set the key for the bucket.
+     * Get the key for the bucket.
      *
-     * @param string $value
-     *
-     * @return string|self
+     * @return string
      */
-    public function key(string $value = null)
+    public function key()
     {
-        return $this->property(__FUNCTION__, $value);
+        return $this->key;
     }
 
     /**
