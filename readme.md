@@ -77,7 +77,7 @@ The package has several built in resolvers with the default being to uniquely id
 | --- | --- | --- |
 | 60 total | 1 per second | 1 minute |
 
-```
+```php
 // Use the current user as the resolver (default)
 // The following lines are all the same binding
 use ArtisanSdk\RateLimiter\Resolvers\User;
