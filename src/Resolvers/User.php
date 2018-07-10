@@ -52,12 +52,12 @@ class User implements Resolver
      * @param int|float|string         $rate
      * @param int|string               $duration
      */
-    public function __construct(Request $request, $max = 60, $rate = 1, $duration = 1)
+    public function __construct(Request $request, $max = null, $rate = null, $duration = null)
     {
         $this->request = $request;
-        $this->max = $max;
-        $this->rate = $rate;
-        $this->duration = $duration;
+        $this->max = $max ?? 60;
+        $this->rate = $rate ?? 1;
+        $this->duration = $duration ?? 1;
     }
 
     /**

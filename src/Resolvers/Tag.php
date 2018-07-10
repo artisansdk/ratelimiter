@@ -22,7 +22,7 @@ class Tag extends User
      * @param int|float|string         $rate
      * @param int|string               $duration
      */
-    public function __construct(Request $request, string $tag, $max = 60, $rate = 1, $duration = 1)
+    public function __construct(Request $request, string $tag, $max = null, $rate = null, $duration = null)
     {
         parent::__construct($request, $max, $rate, $duration);
 
