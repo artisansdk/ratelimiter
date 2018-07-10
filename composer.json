@@ -17,7 +17,7 @@
     "require": {
         "php": ">=7.0",
         "illuminate/contracts": "~5.0",
-        "nesbot/carbon": "~1.32",
+        "nesbot/carbon": "~1.0",
         "symfony/http-kernel": "~2.6|~3.3|~4.0"
     },
     "require-dev": {
