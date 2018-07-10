@@ -662,7 +662,7 @@ being passed to `hit()` method. So in a sense you could say the current `Bucket`
 implementation is an Integer Counter Leaky Bucket but with a little modification
 it could be an Event Logging Leaky Bucket.
 
-## Run the Tests
+## Running the Tests
 
 The package is unit tested with 100% line coverage and path coverage. You can
 run the tests by simply cloning the source, installing the dependencies, and then
