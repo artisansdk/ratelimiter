@@ -101,6 +101,8 @@ class Evented extends Leaky
      */
     protected function fire($event)
     {
-        return $this->events->dispatch($event);
+        return method_exists($this->events, 'dispatch')
+            ? $this->events->dispatch($event)
+            : $this->events->fire($event);
     }
 }
