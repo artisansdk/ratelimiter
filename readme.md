@@ -1,6 +1,6 @@
 # Rate Limiter
 
-A leaky bucket rate limiter and middleware controls for route-level granularity.
+A leaky bucket rate limiter and corresponding middleware with route-level granularity compatible with Laravel.
 
 ## Table of Contents
 
@@ -339,7 +339,7 @@ than requests, but generally you would only be using them with request throttlin
 via the middleware. A resolver is any class that implements the
 `ArtisandSdk\RateLimiter\Contracts\Resolver` interface. The returned values could
 be anything statically returned or dynamically resolved from the request and other
-services available to the class. The only resolved vlaue that cannot be overwritten
+services available to the class. The only resolved value that cannot be overwritten
 is the key which is used as the signature that identifies the unique request. This
 signature is the key used to cache the Leaky Bucket. No two users would have the
 same bucket and no two routes would likewise use the same bucket because the keys
@@ -349,9 +349,9 @@ would resolve to something different.
 
 The keys are hashed but in raw form they look like `example.com|127.0.0.1` for guests
 or `johndoe[at]example.com` for authenticated users. More granular keys such as
-`example.com|127.0.01::/api/foo/bar` as used by the `Tag` and `Route` resolvers
-nest using the `::` separator. Both sides of the separator are hashed separately
-such that you could think of the sides as `client::bucket` where hits against the
+`example.com|127.0.01:/api/foo/bar` as used by the `Tag` and `Route` resolvers
+nest using the colon (`:`) separator. Both sides of the separator are hashed separately
+such that you could think of the sides as `client:bucket` where hits against the
 bucket key count as a hit against the client key as well. Timeout durations resolve
 from outside in so if the client key is in a timeout, all bucket keys are rate limited
 as well. Conversely if a bucket key is in a timeout, other buckets may still be
@@ -401,15 +401,261 @@ Route::middleware('throttle:'.Tag::class.',foo,60,1,1');
 
 #### Creating Custom Resolvers
 
-> **Note:** The docs are still being written, check back later or submit a PR.
+One of the simplest custom resolvers would be a hard-coded version of the `Tag`
+resolver which can be used to create settings objects for throttling related resources.
+Something like this would do the trick:
+
+```php
+use ArtisanSdk\RateLimiter\Resolvers\User as Resolver;
+use Symfony\Component\HttpFoundation\Request;
+
+class UserResourceLimits extends Resolver
+{
+    protected $max = '50|100'; // 50 drips for guests, 100 drips for users
+    protected $rate = '1|10'; // 1 drip per second for guests, 10 drips per second for users
+    protected $duration = 60; // 60 minute timeout
+    protected $resource = 'user'; // resource key
+
+    public function __construct(Request $request)
+    {
+        parent::__construct($request, $this->max, $this->rate, $this->duration);
+    }
+
+    public function key(): string
+    {
+        return parent::key().':'.$this->resource();
+    }
+
+    public function resource(): string
+    {
+        return $this->resource;
+    }
+}
+```
+
+Then to use this limiter you would simply bind it on routes like this:
+
+```php
+use App\Http\UserResourceLimits;
+
+Route::middleware('throttle:'.UserResourceLimits::class)
+    ->prefix('api/user')
+    ->group(function($router){
+        $router->get('/', 'UserApi@index');
+        $router->get('{id}', 'UserApi@show');
+    });
+
+Route::get('/dashboard', 'Dashboard@index');
+```
+
+Each of the `/api/user` prefixed routes would then log a hit against the `user` resource
+bucket while the `/dashboard` would use the default global limits. A visit to
+the dashboard would increment the global bucket, while a visit to a user resource
+endpoint would increment both the `user` resource bucket and the global bucket.
+The `UserResourceLimits` resolver uses the hard-coded values so that there is only
+one configurable place to customize the settings. This is purposefully closed and
+if a more extensible solution is needed then the built-in `Tag` resolver would be
+a better option.
 
 #### Setting a Custom Resolver as the Default
 
+Similar to how a custom cache `Repository` can be injected into the rate `Limiter`
+class, a secondary argument allows for the injection of a custom
+`ArtisanSdk\RateLimiter\Contracts\Resolver` implementation. The default resolver is
+`ArtisanSdk\RateLimiter\Resolvers\User` and to override this, you to bind the
+custom resolver as default by registering it in your `App\Providers\AppServiceProvider`
+class. Just add to your `register()` method the following (or better, abstract it to it's own method):
+
+```php
+use ArtisanSdk\RateLimiter\Middleware;
+use App\Http\FooBarResolver;
+
+$this->app->when(Middleware::class)
+    ->needs('$resolver')
+    ->give(function(){
+        return FooBarResolver::class;
+    });
+```
+
+This will give the fully-qualified resolver class name to the `$resolver` variable
+in the `Middleware`'s constructor which will then be used as the default anytime
+a more specific route binding is not provided. In this case it is providing the
+custom `App\Http\FooBarResolver` as the default.
+
 ### Using the Rate Limiter by Itself
 
+The `Limiter` class can be used by itself to persist the leaky `Bucket` implementation.
+Essentially the `Limiter` class is just an abstraction of the `Bucket` to be more
+aligned with the concepts of "hits", "limits", and "backoffs" as are often used
+in rate limiting requests or login attempts. These are not the only things that
+need be rate limited. You can rate limit the number of reads and writes for models
+defering to queuing when a certain limit is exceeded. You can rate limit the number
+of parallel processed jobs. Essentially anything that needs to be limited using
+the Leaky Bucket Algorithm can use the `Limiter` class as a standalone rate limiter.
+
+All you need to use the limiter is a persistence layer that implements the
+`Illuminate\Contracts\Cache\Repository` interface and an instance of the
+`ArtisanSdk\RateLimiter\Bucket`. The `Bucket` which contains the drips (hits)
+against the `Limiter` and is configured with the needed rates and limits, is
+also instantiated with `$key` which the `Repository` service uses to persist the
+`Bucket`. For long-running daemons, the `Bucket` might not even be persisted in
+which case the `Illuminate\Cache\ArrayStore` repository may be used.
+
+```php
+use ArtisanSdk\RateLimiter\Limiter;
+use ArtisanSdk\RateLimiter\Bucket;
+use Illuminate\Support\Facades\Cache;
+
+// Configure the limiter to use the default cache driver
+// and persist the bucket under the key 'foo' and limit to
+// 1 hit per minute or up to the maximum of 10 hits while bursting
+$bucket = new Bucket($key = 'foo', $max = 10, $rate = 0.016667);
+$limiter = new Limiter(Cache::store(), $bucket);
+
+// Keep popping or queuing jobs until empty or the limit is hit
+while(/* some function that gets a job */) {
+
+    // Check that we can proceed with processing
+    // This is an abstraction for checking if there's an existing timeout
+    // or if the leaky bucket is now overflowing
+    if( $limiter->exceeded() ) {
+
+        // Put the bucket in a timeout until it drains
+        // or you could use any arbitrary duration (or even allow for overflow)
+        $minutes = $bucket->duration() * 60;
+        $limiter->timeout($minutes);
+        break;
+    }
+
+    // Execute the job and when the work is done, log a hit
+    // Unlike the bucket which allows for multiples drips at a time,
+    // a rate limiter usually only allows for a single hit at a time.
+    $limiter->hit();
+}
+
+// Let the caller know when in seconds to try again
+return $limiter->backoff();
+```
+
+If you need to use multiple buckets then simply instantiate a bucket with a compound
+key such as `foo:bar`. The rate limiter would then apply rates for hits against `foo:bar`
+and `foo` simultaneously. Just change out the lines to be:
+
+```php
+$limiter = new Limiter(Cache::store(), new Bucket('foo:bar'));
+
+// or let Laravel handle the cache driver dependencies with
+$limiter = app(Limiter::class, ['bucket' => new Bucket('foo:bar')]);
+```
+
+Take a look at `ArtisanSdk\RateLimiter\Contracts\Limiter` for additional methods
+you can call or at the concrete implementation `ArtisanSdk\RateLimiter\Limiter`
+for non-contract, convenience methods such as `reset()`, `clear()`, `hasTimeout()`, etc.
+that are unique to the implementation.
+
 #### Creating a Custom Rate Limiter
+
+If the logic of the rate limiter is not to your liking, you can use the `Middleware`
+and the leaky `Bucket` but implement your own instance of
+`ArtisanSdk\RateLimiter\Contracts\Limiter`. Alternatively you could re-implement
+Laravel's fixed decay rate limiter by modifying the calls that refer to the Leaky
+Bucket Algorithm with more generic methods on a custom bucket. So long as the
+`Limiter` contract is implemented, then the `Middleware` can be configured to
+inject your custom `Limiter`.
+
+Similar to how a custom cache `Repository` can be injected into the rate `Limiter`
+class, the `Middleware` can receive your custom `Limiter` as an injected dependency.
+You bind the custom `Limiter` by registering it in your `App\Providers\AppServiceProvider`
+class. Just add to your `register()` method the following (or better, abstract it to it's own method):
+
+```php
+use App\Http\RateLimiter;
+use ArtisanSdk\RateLimiter\Contracts\Limiter;
+
+$this->app->bind(Limiter::class, RateLimiter::class);
+```
+
+Now wherever the type hinted `Limiter` contract is resolved out of the container,
+your custom `RateLimiter` class will be provided instead.
+
 ### Using the Bucket by Itself
+
+The `Bucket` class can be used by itself wherever a Leak Bucket Algorithm is needed.
+All of the algorithm is implemented against an internal in-memory store which can
+be converted to an array with `toArray()` or as JSON with `toJson()`. This allows
+persistence layers such as a rate `Limiter` implementation to be just about anything.
+For example, the `Bucket` could be implemented as a new connection pooling and
+flood controls for a long-running WebSocket server. Whenever a new connection
+is established, the `Bucket` is `fill()` with a drip and when it `isFull()` then
+connections could be rejected. Since the `Bucket` is constantly leaking, new connection
+can be made at a constant rate, once full. This is especially useful for logic where
+establishing say up to `100` connections can be done relatively quickly, but once you have
+that many connections established, adding more involves more coordination and more
+consideration of resource prioritization for the already established connections.
+Having a Leaky Bucket lets you control the rate of addition.
+
+The `Bucket` has a fluent builder interface for configuring itself and as the
+critical part of the code-base it's worth taking a look under the hood at the raw
+code. Here's a quick overview of it's public API though:
+
+```php
+use ArtisanSdk\RateLimiter\Bucket;
+
+$bucket = new Bucket('foo'); // bucket named 'foo' with default capacity and leakage
+$bucket = new Bucket('foo', 100, 10); // bucket holding 100 drips that leaks 10 drips per second
+$bucket = new Bucket('foo', 1, 0.016667); // bucket that overflows at more than 1 drip per minute
+
+(new Bucket('foo'))
+    ->configure([
+        'max' => 100,            // 100 drips capacity
+        'rate' => 10,            // leaks 10 drips per second
+        'drips' => 50,           // already half full
+        'timer' => time() - 10,  // created 10 seconds ago
+    ])
+    ->fill(10)                   // add 10 more drips
+    ->leak()                     // recalculate the bucket's state
+    ->toArray();                 // get array representation for persistence
+
+$bucket = (new Bucket('foo'))    // instantiate the same bucket as above
+    ->max(100)                   // $bucket->max() would return 100
+    ->rate(3)                    // $bucket->rate() would return 10
+    ->drips(50)                  // $bucket->drips() would return 50
+    ->timer(time() - 10)         // $bucket->timer() would get the time
+    ->fill(10)                   // $bucket->remaining() would return 40
+    ->leak();                    // $bucket->drips() would return 30
+
+$bucket->isEmpty();              // false
+$bucket->isFull();               // false
+$bucket->duration();             // 10 seconds till empty again
+$bucket->key();                  // string('foo')
+$bucket->reset();                // keeps configuration but reset drips and timer
+```
+
 #### Logging the Drips in the Bucket
+
+If you consider it, a drip in the bucket represents some sort of event that occurred
+within the application. At some point you routed your call to log the drip into
+the bucket. Chances are you could listen for the original event, but if you are
+dispatching through a command bus, then you might need to log calls to the bucket
+as events the rest of your application can listen for. This would require an evented
+bucket which would entail modifying the `Limiter::__construct()` method to typehint
+an interfaced `Bucket` instead of the concrete. Then a proxy or other decorator
+could be implemented that intercepts calls, fires events, forwards calls to the
+existing `Bucket` and relays backs the responses.
+
+Another way would be to do the decorating of the `Bucket` at the `Limiter` level
+or simply do the eventing directly there. If you notice, the `Limiter` is the persistence
+manager for the `Bucket` anyway and the `Bucket` simply holds the state while in
+memory. So with that in mind, you could also modify the `Limiter` such that a `hit()`
+passes an event object to the `Bucket` which is pushed on to an internal stack of events
+instead of incrementing an internal counter. Then when the `Bucket` is persisted
+instead of simply returning a count of `$drips` it can return an array of event
+objects. This opens up the ability to log hits only if they are unique, or to
+further limit the bucket based on the types of hits received. You could go as far
+as resolving the right rate bucket to store the hit against based on the event object
+being passed to `hit()` method. So in a sense you could say the current `Bucket`
+implementation is an Integer Counter Leaky Bucket but with a little modification
+it could be an Event Logging Leaky Bucket.
 
 ## Licensing
 
