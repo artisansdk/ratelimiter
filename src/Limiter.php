@@ -2,6 +2,7 @@
 
 namespace ArtisanSdk\RateLimiter;
 
+use ArtisanSdk\RateLimiter\Contracts\Bucket;
 use ArtisanSdk\RateLimiter\Contracts\Limiter as Contract;
 use Carbon\Carbon;
 use Illuminate\Contracts\Cache\Repository as Cache;
@@ -28,8 +29,8 @@ class Limiter implements Contract
     /**
      * Create a new rate limiter instance.
      *
-     * @param \Illuminate\Contracts\Cache\Repository $cache
-     * @param \ArtisanSdk\RateLimiter\Bucket         $bucket
+     * @param \Illuminate\Contracts\Cache\Repository   $cache
+     * @param \ArtisanSdk\RateLimiter\Contracts\Bucket $bucket
      */
     public function __construct(Cache $cache, Bucket $bucket)
     {
@@ -37,10 +38,10 @@ class Limiter implements Contract
 
         $key = $bucket->key();
         if (false !== stripos($key, ':')) {
-            list($user, $route) = explode(':', $key, 2);
-            $parent = new $bucket($user, $bucket->max(), $bucket->rate());
+            list($parent, $route) = explode(':', $key, 2);
+            $parent = new $bucket($parent, $bucket->max(), $bucket->rate());
             $this->buckets[] = $parent->configure(
-                $this->cache->get($user, $bucket->toArray())
+                $this->cache->get($parent->key(), $bucket->toArray())
             );
         }
 

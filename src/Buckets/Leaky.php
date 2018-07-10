@@ -1,16 +1,14 @@
 <?php
 
-namespace ArtisanSdk\RateLimiter;
+namespace ArtisanSdk\RateLimiter\Buckets;
 
+use ArtisanSdk\RateLimiter\Contracts\Bucket;
 use ArtisanSdk\RateLimiter\Traits\Fluency;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
-use JsonSerializable;
 
 /**
- * Leak Bucket.
+ * Leaky Bucket.
  */
-class Bucket implements Arrayable, Jsonable, JsonSerializable
+class Leaky implements Bucket
 {
     use Fluency;
 
@@ -81,7 +79,7 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      *
      * @param float $value
      *
-     * @return float|self
+     * @return float|\ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function timer($value = null)
     {
@@ -93,7 +91,7 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      *
      * @param int $value
      *
-     * @return int|self
+     * @return int|\ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function max(int $value = null)
     {
@@ -105,7 +103,7 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      *
      * @param int|float $value
      *
-     * @return float|self
+     * @return float|\ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function rate($value = null)
     {
@@ -171,16 +169,18 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      *
      * @param int|float $rate
      *
-     * @return self
+     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
-    public function leak($rate = null): self
+    public function leak($rate = null): Bucket
     {
         $drips = $this->drips();
         $rate = is_null($rate) ? $this->rate() : (float) $rate;
         $timer = $this->timer();
         $now = $this->reset()->timer();
         $elapsed = $now - $timer;
-        $this->fill($drips - floor($elapsed * $rate));
+        $drops = floor($elapsed * $rate);
+
+        $this->drips = $this->bounded($drips - $drops);
 
         return $this;
     }
@@ -190,13 +190,11 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      *
      * @param int $drips
      *
-     * @return self
+     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
-    public function fill(int $drips = 1): self
+    public function fill(int $drips = 1): Bucket
     {
-        $drips = max(0, min($this->max(), $drips)); // out of bounds handling
-
-        $this->drips = $this->drips() + $drips;
+        $this->drips = $this->drips() + $this->bounded($drips);
 
         return $this;
     }
@@ -204,9 +202,9 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
     /**
      * Reset the bucket to empty.
      *
-     * @return self
+     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
-    public function reset(): self
+    public function reset(): Bucket
     {
         $this->drips = 0;
         $this->timer(microtime(true));
@@ -219,7 +217,7 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
      *
      * @param array $settings
      *
-     * @return self
+     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function configure(array $settings)
     {
@@ -274,5 +272,17 @@ class Bucket implements Arrayable, Jsonable, JsonSerializable
     public function toJson($options = 0)
     {
         return json_encode($this->jsonSerialize(), $options);
+    }
+
+    /**
+     * Get the bounded number of drips.
+     *
+     * @param int $drips
+     *
+     * @return int
+     */
+    protected function bounded(int $drips): int
+    {
+        return max(0, min($this->max(), $drips));
     }
 }

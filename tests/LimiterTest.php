@@ -2,7 +2,7 @@
 
 namespace ArtisanSdk\RateLimiter\Tests;
 
-use ArtisanSdk\RateLimiter\Bucket;
+use ArtisanSdk\RateLimiter\Buckets\Leaky;
 use ArtisanSdk\RateLimiter\Limiter;
 use ArtisanSdk\RateLimiter\Tests\Stubs\Cache;
 use Carbon\Carbon;
@@ -15,7 +15,7 @@ class LimiterTest extends TestCase
     public function testPersistence()
     {
         $cache = new Cache();
-        $original = new Limiter($cache, new Bucket('original'));
+        $original = new Limiter($cache, new Leaky('original'));
         $this->assertSame(0, $original->hits(), 'A new bucket limiter should not have any hits when constructed.');
         $this->assertSame(60, $original->remaining(), 'A new bucket limiter should have full remaining capacity when constructed.');
 
@@ -23,11 +23,11 @@ class LimiterTest extends TestCase
         $this->assertSame(1, $original->hits(), 'After the bucket is hit it should increment the hits.');
         $this->assertSame(59, $original->remaining(), 'After the bucket is hit it should decrement the remaining capacity.');
 
-        $new = new Limiter($cache, new Bucket('new'));
+        $new = new Limiter($cache, new Leaky('new'));
         $this->assertNotSame($original->hits(), $new->hits(), 'Different buckets should be stored under different keys.');
         $this->assertNotSame($original->remaining(), $new->remaining(), 'Different buckets should be stored under different keys.');
 
-        $existing = new Limiter($cache, new Bucket('original'));
+        $existing = new Limiter($cache, new Leaky('original'));
         $this->assertSame($original->hits(), $existing->hits(), 'Persisted buckets should be stored under the same keys and retrieved on construction.');
         $this->assertSame($original->remaining(), $existing->remaining(), 'Persisted buckets should be stored under the same keys and retrieved on construction.');
     }
@@ -38,7 +38,7 @@ class LimiterTest extends TestCase
     public function testConfigure()
     {
         $cache = new Cache();
-        $original = new Bucket('original');
+        $original = new Leaky('original');
         $limiter = new Limiter($cache, $original);
         $limiter->hit();
 
@@ -61,7 +61,7 @@ class LimiterTest extends TestCase
     public function testExceeded()
     {
         $cache = new Cache();
-        $limiter = new Limiter($cache, new Bucket('default', 2, 1));
+        $limiter = new Limiter($cache, new Leaky('default', 2, 1));
 
         $limiter->hit();
         $this->assertFalse($limiter->exceeded(), 'The rate limiter should not be exceeded with 1 hit when the limit is 2.');
@@ -82,7 +82,7 @@ class LimiterTest extends TestCase
     {
         $cache = new Cache();
         $time = Carbon::now();
-        $bucket = (new Bucket('foo'))->timer($time->getTimestamp());
+        $bucket = (new Leaky('foo'))->timer($time->getTimestamp());
         $limiter = new Limiter($cache, $bucket);
         $limiter->timeout();
 
@@ -100,8 +100,8 @@ class LimiterTest extends TestCase
     public function testClear()
     {
         $cache = new Cache();
-        $bucket = new Bucket('foo');
-        (new Limiter($cache, new Bucket('bar')))->hit();
+        $bucket = new Leaky('foo');
+        (new Limiter($cache, new Leaky('bar')))->hit();
         $limiter = new Limiter($cache, $bucket);
         $limiter->hit();
         $limiter->timeout();
@@ -129,7 +129,7 @@ class LimiterTest extends TestCase
     public function testMultipleBuckets()
     {
         $cache = new Cache();
-        $bucket = new Bucket('foo:bar:baz'); // we provide 3 keys to ensure only 2 are used
+        $bucket = new Leaky('foo:bar:baz'); // we provide 3 keys to ensure only 2 are used
         $limiter = new Limiter($cache, $bucket);
         $limiter->hit();
         $store = $cache->getStore();
@@ -168,7 +168,7 @@ class LimiterTest extends TestCase
         $this->assertArrayHasKey('foo', $store, 'The parent bucket you should remain cache after the rate limiter is cleared.');
         $this->assertSame(2, $store['foo']['drips'], 'The parent bucket\'s capacity should remain unaffected after the rate limiter is cleared.');
 
-        $bucket = new Bucket('foo:bar'); // we reuse the foo parent bucket key
+        $bucket = new Leaky('foo:bar'); // we reuse the foo parent bucket key
         $limiter = new Limiter($cache, $bucket);
         $limiter->hit();
         $store = $cache->getStore();

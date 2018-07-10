@@ -27,6 +27,22 @@ The package installs into a PHP application like any other PHP package:
 composer require artisansdk/ratelimiter
 ```
 
+Once installed, you will need to bind your choice of `Bucket` implementations for
+the rate `Limiter` class. Choose either the `Leaky` or the Leaky `Evented` bucket
+if you need additional event dispatching. Add the following lines to your
+`App\Providers\AppServiceProvider`:
+
+```php
+use ArtisanSdk\RateLimiter\Buckets\Leaky;
+use ArtisanSdk\RateLimiter\Contracts\Bucket;
+
+public function register()
+{
+    $this->app->bind(Bucket::class, Leaky::class);
+    // or $this->app->bind(Bucket::class, Evented::class);
+}
+```
+
 The package includes middleware for the rate limiter which is compatible with
 Laravel's built in `Illuminate\Routing\Middleware\ThrottleRequests`. Simply update
 the `App\Http\Kernel::$routeMiddleware` array so that the `throttle` key points
@@ -589,6 +605,7 @@ The `Bucket` class can be used by itself wherever a Leak Bucket Algorithm is nee
 All of the algorithm is implemented against an internal in-memory store which can
 be converted to an array with `toArray()` or as JSON with `toJson()`. This allows
 persistence layers such as a rate `Limiter` implementation to be just about anything.
+
 For example, the `Bucket` could be implemented as a new connection pooling and
 flood controls for a long-running WebSocket server. Whenever a new connection
 is established, the `Bucket` is `fill()` with a drip and when it `isFull()` then
@@ -604,13 +621,13 @@ critical part of the code-base it's worth taking a look under the hood at the ra
 code. Here's a quick overview of it's public API though:
 
 ```php
-use ArtisanSdk\RateLimiter\Bucket;
+use ArtisanSdk\RateLimiter\Buckets\Leaky;
 
-$bucket = new Bucket('foo'); // bucket named 'foo' with default capacity and leakage
-$bucket = new Bucket('foo', 100, 10); // bucket holding 100 drips that leaks 10 drips per second
-$bucket = new Bucket('foo', 1, 0.016667); // bucket that overflows at more than 1 drip per minute
+$bucket = new Leaky('foo');              // bucket named 'foo' with default capacity and leakage
+$bucket = new Leaky('foo', 100, 10);     // bucket holding 100 drips that leaks 10 drips per second
+$bucket = new Leaky('foo', 1, 0.016667); // bucket that overflows at more than 1 drip per minute
 
-(new Bucket('foo'))
+(new Leaky('foo'))
     ->configure([
         'max' => 100,            // 100 drips capacity
         'rate' => 10,            // leaks 10 drips per second
@@ -621,7 +638,7 @@ $bucket = new Bucket('foo', 1, 0.016667); // bucket that overflows at more than 
     ->leak()                     // recalculate the bucket's state
     ->toArray();                 // get array representation for persistence
 
-$bucket = (new Bucket('foo'))    // instantiate the same bucket as above
+$bucket = (new Leaky('foo'))     // instantiate the same bucket as above
     ->max(100)                   // $bucket->max() would return 100
     ->rate(3)                    // $bucket->rate() would return 10
     ->drips(50)                  // $bucket->drips() would return 50
@@ -636,17 +653,44 @@ $bucket->key();                  // string('foo')
 $bucket->reset();                // keeps configuration but reset drips and timer
 ```
 
-#### Logging the Drips in the Bucket
+#### Using the Evented Bucket
 
 If you consider it, a drip in the bucket represents some sort of event that occurred
 within the application. At some point you routed your call to log the drip into
 the bucket. Chances are you could listen for the original event, but if you are
 dispatching through a command bus, then you might need to log calls to the bucket
-as events the rest of your application can listen for. This would require an evented
-bucket which would entail modifying the `Limiter::__construct()` method to typehint
-an interfaced `Bucket` instead of the concrete. Then a proxy or other decorator
-could be implemented that intercepts calls, fires events, forwards calls to the
-existing `Bucket` and relays backs the responses.
+as events the rest of your application can listen for.
+
+> **Note:** The `Evented` bucket is an extension of the `Leaky` bucket that only
+wraps the parent class with events. All the same builder logic and behavior is the
+same otherwise.
+
+You can switch from the basic `Leaky` bucket to the `Evented` bucket by binding
+the interface to the concrete the `register()` method of your
+`App\Providers\AppServiceProvider`:
+
+```php
+use ArtisanSdk\RateLimiter\Buckets\Evented;
+use ArtisanSdk\RateLimiter\Contracts\Bucket;
+
+$this->app->bind(Bucket::class, Evented::class);
+```
+
+And then you can listen for the following events:
+
+- `ArtisanSdk\RateLimiter\Events\Filling`
+- `ArtisanSdk\RateLimiter\Events\Filled`
+- `ArtisanSdk\RateLimiter\Events\Leaking`
+- `ArtisanSdk\RateLimiter\Events\Leaked`
+
+If you want to fire events whenever the limiter is exceeded, you'll need to do
+that in your own code or modify the `Limiter` itself to also fire events. You could
+do that by injecting into the constructor an optional implementation of
+`Illuminate\Contracts\Event\Dispatcher` and when present the `Limiter` would
+fire events for `Limiter::hit()` and `Limiter::timeout()` and optionally
+`Limiter::clear()` methods.
+
+#### Logging the Drips in the Bucket
 
 Another way would be to do the decorating of the `Bucket` at the `Limiter` level
 or simply do the eventing directly there. If you notice, the `Limiter` is the persistence
@@ -658,9 +702,8 @@ instead of simply returning a count of `$drips` it can return an array of event
 objects. This opens up the ability to log hits only if they are unique, or to
 further limit the bucket based on the types of hits received. You could go as far
 as resolving the right rate bucket to store the hit against based on the event object
-being passed to `hit()` method. So in a sense you could say the current `Bucket`
-implementation is an Integer Counter Leaky Bucket but with a little modification
-it could be an Event Logging Leaky Bucket.
+being passed to `hit()` method. With a little modification, you could convert
+the `Bucket` to an event store.
 
 ## Running the Tests
 

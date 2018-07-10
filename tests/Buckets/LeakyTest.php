@@ -2,33 +2,33 @@
 
 namespace ArtisanSdk\RateLimiter\Tests;
 
-use ArtisanSdk\RateLimiter\Bucket;
+use ArtisanSdk\RateLimiter\Buckets\Leaky;
 use Carbon\Carbon;
 
-class BucketTest extends TestCase
+class LeakyTest extends TestCase
 {
     /**
      * Test that the bucket, when constructed, is reset.
      */
     public function testConstruct()
     {
-        $bucket = new Bucket();
-        $this->assertSame('default', $bucket->key());
-        $this->assertSame(60, $bucket->max());
-        $this->assertSame(1.0, $bucket->rate());
-        $this->assertSame(0, $bucket->drips());
+        $bucket = new Leaky();
+        $this->assertSame('default', $bucket->key(), 'The default key for the bucket should be default.');
+        $this->assertSame(60, $bucket->max(), 'The default max for the bucket should be 60.');
+        $this->assertSame(1.0, $bucket->rate(), 'The default rate for the bucket should be 1 drip per second.');
+        $this->assertSame(0, $bucket->drips(), 'The bucket should be reset to 0 drips when the bucket is created.');
 
-        $bucket = new Bucket('fast', 30, 10);
-        $this->assertSame('fast', $bucket->key());
-        $this->assertSame(30, $bucket->max());
-        $this->assertSame(10.0, $bucket->rate());
-        $this->assertSame(0, $bucket->drips());
+        $bucket = new Leaky('fast', 30, 10);
+        $this->assertSame('fast', $bucket->key(), 'The passed key should be set on the bucket.');
+        $this->assertSame(30, $bucket->max(), 'The passed max should be set on the bucket.');
+        $this->assertSame(10.0, $bucket->rate(), 'The passed rate should be set on the bucket.');
+        $this->assertSame(0, $bucket->drips(), 'The bucket should be reset to 0 drips when the bucket is created.');
 
-        $bucket = new Bucket('slow', 30, 0.1);
-        $this->assertSame('slow', $bucket->key());
-        $this->assertSame(30, $bucket->max());
-        $this->assertSame(0.1, $bucket->rate());
-        $this->assertSame(0, $bucket->drips());
+        $bucket = new Leaky('slow', 30, 0.1);
+        $this->assertSame('slow', $bucket->key(), 'The passed key should be set on the bucket.');
+        $this->assertSame(30, $bucket->max(), 'The passed max should be set on the bucket.');
+        $this->assertSame(0.1, $bucket->rate(), 'The passed rate should be set on the bucket.');
+        $this->assertSame(0, $bucket->drips(), 'The bucket should be reset to 0 drips when the bucket is created.');
     }
 
     /**
@@ -43,7 +43,7 @@ class BucketTest extends TestCase
             'drips' => 8,
         ];
 
-        $bucket = (new Bucket())
+        $bucket = (new Leaky())
             ->configure($settings);
 
         $this->assertSame(
@@ -63,13 +63,13 @@ class BucketTest extends TestCase
      */
     public function testToJson()
     {
-        $bucket = (new Bucket())
+        $bucket = (new Leaky())
             ->timer($time = time());
 
         $this->assertJson(
             '{"key":"default","timer":'.$time.',"max":60,"rate":1,"drips":0,"remaining":60}',
             $bucket->toJson(),
-            'Bucket should be converted to JSON with a key, timer, max, rate, drips, and remaining keys and values.'
+            'Bucket should be converted to JSON with  "key", "timer", "max", "rate", "drips", and "remaining" keys and values.'
         );
     }
 
@@ -79,7 +79,7 @@ class BucketTest extends TestCase
     public function testLeak()
     {
         $time = (float) Carbon::now()->subSeconds(5)->getTimestamp();
-        $bucket = (new Bucket())
+        $bucket = (new Leaky())
             ->timer($time)
             ->fill(10);
 
@@ -99,7 +99,7 @@ class BucketTest extends TestCase
      */
     public function testCapacity()
     {
-        $bucket = new Bucket('foo', 10);
+        $bucket = new Leaky('foo', 10);
 
         $bucket = $bucket->fill(10);
         $this->assertTrue($bucket->isFull(), 'The bucket should be full if the max capacity is 10 and it was filled with 10 drips.');
@@ -120,7 +120,7 @@ class BucketTest extends TestCase
     public function testDuration()
     {
         $time = microtime(true) - 10;
-        $bucket = new Bucket('foo', 50, 0.1);
+        $bucket = new Leaky('foo', 50, 0.1);
         $bucket = $bucket->timer($time)->fill(22);
 
         $this->assertSame(28, $bucket->remaining(), 'Out of a capacity of 50, the bucket was filled with 22 drips, allowing for 28 remaining drips to be added.');

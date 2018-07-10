@@ -2,7 +2,7 @@
 
 namespace ArtisanSdk\RateLimiter\Tests;
 
-use ArtisanSdk\RateLimiter\Bucket;
+use ArtisanSdk\RateLimiter\Buckets\Leaky;
 use ArtisanSdk\RateLimiter\Contracts\Resolver as Contract;
 use ArtisanSDK\RateLimiter\Exception;
 use ArtisanSdk\RateLimiter\Limiter;
@@ -23,7 +23,7 @@ class MiddlewareTest extends TestCase
     public function testResponseHasXRateHeaders()
     {
         $cache = new Cache();
-        $limiter = new Limiter($cache, new Bucket());
+        $limiter = new Limiter($cache, new Leaky());
         $resolver = new Resolver();
         $middleware = new Middleware($limiter, $resolver);
         $request = Request::createFromGlobals();
@@ -103,7 +103,7 @@ class MiddlewareTest extends TestCase
     public function testInvalidResolver()
     {
         $cache = new Cache();
-        $limiter = new Limiter($cache, new Bucket());
+        $limiter = new Limiter($cache, new Leaky());
         $resolver = new stdClass();
         $middleware = new Middleware($limiter, $resolver);
         $next = function ($request) { return new Response(); };
