@@ -16,6 +16,7 @@ A leaky bucket rate limiter and corresponding middleware with route-level granul
     - [How Multiple Buckets Work](#how-multiple-buckets-work)
     - [Using the Rate Limiter by Itself](#using-the-rate-limiter-by-itself)
     - [Using the Bucket by Itself](#using-the-bucket-by-itself)
+- [Running the Tests](#running-the-tests)
 - [Licensing](#licensing)
 
 ## Installation
@@ -74,9 +75,9 @@ this means that a client could make `60` requests with `1` minute of decay befor
 a `1` minute forced decay timeout. The client could make `60` requests in `1` second
 or distributed over `60` seconds at a rate of 1 request per second (`1 r/s`). If the
 requests are evenly spaced at about `1 r/s` then the client will not be rate limited.
-This means that `throttle:120,2` is effectively the same as 1 r/s but tracked for
-`2` minutes and allowing a larger burst limit up to `120` requests. Meanwhile `throttle:120,1`
-would be an effective rate of `2 r/s` with the same burst limit.
+This means that `throttle:120,2` is effectively the same as `1 r/s` but tracked for
+`2` minutes and allowing a larger burst limit up to `120` requests. Meanwhile
+`throttle:120,1` would be an effective rate of `2 r/s` with the same burst limit.
 
 #### Problem 1: Bursting Exploit
 
@@ -109,53 +110,57 @@ attack surface area.
 If the user is logged in, Laravel does use the unique identifier for the user as
 the key which is better than the IP address. Even better, different rates for
 different users using a string based key like `throttle:60|rate_limit` which
-translates to 60 requests by guests and whatever `Auth::user()->rate_limit` returns
-(and if you use the documented `throttle:rate_limit` surprise it will be the same as
-`throttle:0` for guests!). Still, you want to rate limit the resources the user
-accesses differently. The only answer to that problem is to extend the
-`Illuminate\Routing\Middleware\ThrottleRequests` middleware and overload the `resolveRequestSignature()` method to return your custom key. Oh, and let's not
+translates to `60` requests by guests and whatever `Auth::user()->rate_limit` returns
+for users (or if you use the Laravel suggested `throttle:rate_limit` value, it will
+actually be the same as `throttle:0` for guests). That's all fine but you want to rate
+limit the resources the user accesses differently. The only answer to that problem
+is to hack the `Illuminate\Routing\Middleware\ThrottleRequests` middleware and overload
+the `resolveRequestSignature()` method to return your custom key. Oh, and let's not
 forget that the same decay rate is used for both guests and authenticated users
 so you have to grok your way through that inadvertent security coupling.
 
 ### Understanding the Leaky Bucket Algorithm
 
-The answer to Laravel's rate limiter shortcomings is a better algorithm that includes
-a couple of additional configuration options.
+The answer to Laravel's rate limiter is a better algorithm that includes
+a couple of additional configuration settings.
 
 #### Leaky Bucket Implementation
 
 The Leaky Bucket Algorithm is the rate limiter this package implements. As its
-name suggests, there is a bucket (a cache) that you fill with drips (a requests)
+name suggests, there is a bucket (a cache) that you fill with drips (a request)
 up to the maximum capacity (the limit) at which point if you continue filling it
 will overflow (rate limiting). This bucket also leaks at a constant rate of drips
 per second (requests per second). This means that if you fill the bucket with drips
-at the same rate in which it leaks drips then you can continue hitting it forever
+at the same rate in which it leaks then you can continue hitting it forever
 without overflowing. You can also burst up to the maximum capacity which has no
 effect on the leak rate. So effectively the Leaky Bucket Algorithm enforces a
-constant drip rate determined not by the number of drips but by the leak rate
-in constant time.
+constant drip rate determined not by the number of drips added to the bucket but
+by the leak rate in constant time. Since the algorithm tracks leaks and buckets
+and not just drips, buckets can be persisted for a longer time to track malicious
+activity longer and rate limit a more balanced request load.
 
 #### Solution 1: Bursting Limit
 
 As already, explained bursting is an exploit that a hacker can use against the
-Laravel rate limiter has and to monitor such exploits makes the attack surface
-area even bigger. The bursting limit in a Leaky Bucket implementation is a separate
-limit that does not expire in a binary, all or nothing, way but expires one drip
-at a time as the bucket leaks. With this implementation you set the bursting limit
-and that limit drains slowly over time at the constant leak rate. This means that
-so long as the client does not exceed the limits and enters a timeout, the client
-can burst up to this limit then wait as little as the leak rate to make one more
-request.
+Laravel rate limiter and to monitor (increase the limits) the exploit makes the
+attack surface area even bigger. The bursting limit in a Leaky Bucket implementation
+is a separate limit that does not expire in a binary, all or nothing, way but
+expires one drip at a time as the bucket leaks. With this implementation you set the
+bursting limit and that limit drains slowly over time at the constant leak rate. This
+means that so long as the client does not exceed the limits and enters a timeout, the
+client can burst up to this limit then wait as little as the leak rate to make one more
+request. They can trickle in requests constantly so long as they don't overflow the
+bucket's maximum capacity.
 
 For example if the settings were `throttle:60,1` then the user can burst
 up in the first second to `60` requests, and only has to wait `1` second to make
 a subsequent request but if they make `2` requests then they'll overflow which
 introduces the timeout penalty. The more time the client rests the more requests
 per second they can make. The two configurations in the settings translate to
-the `60` maximum requests allowed when bursting and effectively an average request per second
-rate of `1 r/s` (technically it's `1` leak per second or `1 l/s`). Now setting
-higher limits represents increased performance, and since they are independent of
-each other, configuration is clear with respect to its effect.
+the `60` maximum requests allowed when bursting and effectively an average request
+per second rate of `1 r/s` (technically it's `1` leak per second or `1 l/s`). Now
+setting higher limits represents increased performance, and since they are independent
+of each other, configuration is clear with respect to its effect.
 
 #### Solution 2: Route-Level Granularity
 
@@ -198,19 +203,19 @@ ships with three built-in resolvers and you can create your own very easily:
 - Limit by Tag: `ArtisanSdk\RateLimiter\Resolvers\Tag`
 
 Because the `User` resolver is the default, you do not have to specify the resolver
-at all which makes `throttle` and `throttle:\ArtisanSdk\RateLimiter\Resolvers\User::class`
+at all which makes `throttle` and `throttle:\ArtisanSdk\RateLimiter\Resolvers\User`
 equivalent. The normal bindings of `throttle:60,1` still apply and are just added
-on the end like so `throttle:\ArtisanSdk\RateLimiter\Resolvers\User::class,60,1`. To use
+on the end like so `throttle:\ArtisanSdk\RateLimiter\Resolvers\User,60,1`. To use
 a different resolver (which all default back to the `User` resolver) just make it
-the first parameter like so `throttle:\ArtisanSdk\RateLimiter\Resolvers\Route:class,60,1`.
+the first parameter like so `throttle:\ArtisanSdk\RateLimiter\Resolvers\Route,60,1`.
 
 You can define your own resolvers and call them the same way like
-`throttle:\App\Http\FooBarResolver::class` and just implement the
+`throttle:\App\Http\FooBarResolver` and just implement the
 `ArtisanSdk\RateLimiter\Contracts\Resolver` interface on your custom resolver.
 Extensibility built right in. Resolvers can therefore also be used to share and
 reuse typical throttling settings so no more magic numbers in your route bindings.
-For example `throttle:\App\Http\UserResourceLimits::class`, `throttle:\App\Http\HighLimits::class`,
-or `throttle:\App\Http\SlowLimits::class`
+For example `throttle:\App\Http\UserResourceLimits`, `throttle:\App\Http\HighLimits`,
+or `throttle:\App\Http\SlowLimits`.
 
 #### Bonus: Overflow Penalties
 
@@ -246,9 +251,9 @@ rates that should apply to guests and the rates that apply to authenticated user
 Laravel uses the pipe (`|`) separate convention to accomplish this with the configuration
 settings so this package extends that behavior. The guest's value will be on the
 left of the pipe while the user's value will be on the right of the pipe. An example
-would be `throttle:60|120` which would apply a limit of 60 requests for guests and
+would be `throttle:60|120` which would apply a limit of `60` requests for guests and
 `120` requests for users. You can alternatively provide a string on the user side
-of the pipe to dynamically set the rate from the authenticated user's profile such
+of the pipe to dynamically set the rate from the authenticated user such
 as `throttle:60,rate_limit` or just `throttle:rate_limit` if you're OK with `0`
 being inferred for the guest side.
 
@@ -656,6 +661,21 @@ as resolving the right rate bucket to store the hit against based on the event o
 being passed to `hit()` method. So in a sense you could say the current `Bucket`
 implementation is an Integer Counter Leaky Bucket but with a little modification
 it could be an Event Logging Leaky Bucket.
+
+## Run the Tests
+
+The package is unit tested with 100% line coverage and path coverage. You can
+run the tests by simply cloning the source, installing the dependencies, and then
+running `./vendor/bin/phpunit`. Additionally included in the developer dependencies
+are some Composer scripts which can assist with Code Styling and coverage reporting:
+
+```bash
+composer test
+composer fix
+composer report
+```
+
+See the `composer.json` for more details on their execution and reporting output.
 
 ## Licensing
 
