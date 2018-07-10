@@ -74,7 +74,11 @@ class User implements Resolver
         }
 
         if ($route = $this->request->route()) {
-            return sha1(ltrim($route->getDomain().'|'.$this->request->ip(), '|'));
+            $domain = method_exists($route, 'getDomain')
+                ? $route->getDomain()
+                : $route->domain();
+
+            return sha1(ltrim($domain.'|'.$this->request->ip(), '|'));
         }
 
         throw new RuntimeException('Unable to generate the request signature. Route unavailable.');
