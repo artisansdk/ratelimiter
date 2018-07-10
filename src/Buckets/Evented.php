@@ -22,14 +22,15 @@ class Evented extends Leaky
     protected $events;
 
     /**
+     * {@inheritdoc}
+     *
      * @param \Illuminate\Contracts\Events\Dispatcher $events
-     *                                                        {@inheritdoc}
      */
-    public function __construct(Dispatcher $events, string $key = 'default', int $max = 60, $rate = 1)
+    public function __construct(string $key = 'default', int $max = 60, $rate = 1, Dispatcher $events)
     {
-        $this->events = $events;
-
         parent::__construct($key, $max, $rate);
+
+        $this->events = $events;
     }
 
     /**

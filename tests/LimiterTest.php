@@ -2,9 +2,11 @@
 
 namespace ArtisanSdk\RateLimiter\Tests;
 
+use ArtisanSdk\RateLimiter\Buckets\Evented;
 use ArtisanSdk\RateLimiter\Buckets\Leaky;
 use ArtisanSdk\RateLimiter\Limiter;
 use ArtisanSdk\RateLimiter\Tests\Stubs\Cache;
+use ArtisanSdk\RateLimiter\Tests\Stubs\Dispatcher;
 use Carbon\Carbon;
 
 class LimiterTest extends TestCase
@@ -178,5 +180,21 @@ class LimiterTest extends TestCase
         $this->assertNotSame($store['foo'], $store['foo:bar'], 'The parent bucket and actual bucket should be different.');
         $this->assertSame(3, $store['foo']['drips'], 'The parent bucket should have 3 hits in it: parent bucket is shared across multiple actual buckets.');
         $this->assertSame(1, $store['foo:bar']['drips'], 'The actual bucket should have only 1 hit against it.');
+    }
+
+    /**
+     * Test that the rate limiter passes the dispatcher to the evented buckets.
+     */
+    public function testDispatcher()
+    {
+        $cache = new Cache();
+        $dispatcher = new Dispatcher();
+        $bucket = new Evented('foo:bar', 60, 1, $dispatcher);
+
+        $limiter = new Limiter($cache, $bucket, $dispatcher);
+        $this->assertCount(4, $dispatcher->getEvents(), 'There should have been 4 events dispatched because both the "foo" and "foo:bar" buckets should have been filled.');
+
+        $limiter->configure('foo:bar:baz', 10, 1);
+        $this->assertCount(6, $dispatcher->getEvents(), 'There should have been 2 more events dispatched because the "foo:bar" bucket was configured which caused it to be refilled.');
     }
 }

@@ -39,7 +39,25 @@ use ArtisanSdk\RateLimiter\Contracts\Bucket;
 public function register()
 {
     $this->app->bind(Bucket::class, Leaky::class);
-    // or $this->app->bind(Bucket::class, Evented::class);
+}
+```
+
+If you do plan on using the `Evented` leaky bucket then you'll also want to add
+the following binding to your `register()` method to ensure that the bucket
+receives the event dispatcher via automatic dependency injection:
+
+```php
+use ArtisanSdk\RateLimiter\Buckets\Evented;
+use ArtisanSdk\RateLimiter\Contracts\Bucket;
+use ArtisanSdk\RateLimiter\Contracts\Limiter;
+use Illuminate\Contracts\Events\Dispatcher;
+
+public function register()
+{
+    $this->app->bind(Bucket::class, Evented::class);
+    $this->app->when(Limiter::class)
+        ->needs(Dispatcher::class)
+        ->give($this->app->events);
 }
 ```
 
@@ -667,13 +685,18 @@ same otherwise.
 
 You can switch from the basic `Leaky` bucket to the `Evented` bucket by binding
 the interface to the concrete the `register()` method of your
-`App\Providers\AppServiceProvider`:
+`App\Providers\AppServiceProvider` and wiring up the `Dispatcher` to the bucket:
 
 ```php
 use ArtisanSdk\RateLimiter\Buckets\Evented;
 use ArtisanSdk\RateLimiter\Contracts\Bucket;
+use ArtisanSdk\RateLimiter\Contracts\Limiter;
+use Illuminate\Contracts\Events\Dispatcher;
 
 $this->app->bind(Bucket::class, Evented::class);
+$this->app->when(Limiter::class)
+    ->needs(Dispatcher::class)
+    ->give($this->app->events);
 ```
 
 And then you can listen for the following events:
@@ -685,7 +708,7 @@ And then you can listen for the following events:
 
 If you want to fire events whenever the limiter is exceeded, you'll need to do
 that in your own code or modify the `Limiter` itself to also fire events. You could
-do that by injecting into the constructor an optional implementation of
+do that by injecting into the constructor the optional implementation of
 `Illuminate\Contracts\Event\Dispatcher` and when present the `Limiter` would
 fire events for `Limiter::hit()` and `Limiter::timeout()` and optionally
 `Limiter::clear()` methods.

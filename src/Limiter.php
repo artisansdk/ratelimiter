@@ -6,6 +6,7 @@ use ArtisanSdk\RateLimiter\Contracts\Bucket;
 use ArtisanSdk\RateLimiter\Contracts\Limiter as Contract;
 use Carbon\Carbon;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Events\Dispatcher;
 
 /**
  * Leaky Bucket Rate Limiter.
@@ -20,6 +21,13 @@ class Limiter implements Contract
     protected $cache;
 
     /**
+     * The event dispatcher implementation.
+     *
+     * @var \Illuminate\Contracts\Events\Dispatcher
+     */
+    protected $events;
+
+    /**
      * The buckets implementation.
      *
      * @var array
@@ -31,15 +39,17 @@ class Limiter implements Contract
      *
      * @param \Illuminate\Contracts\Cache\Repository   $cache
      * @param \ArtisanSdk\RateLimiter\Contracts\Bucket $bucket
+     * @param \Illuminate\Contracts\Events\Dispatcher  $events
      */
-    public function __construct(Cache $cache, Bucket $bucket)
+    public function __construct(Cache $cache, Bucket $bucket, Dispatcher $events = null)
     {
         $this->cache = $cache;
+        $this->events = $events;
 
         $key = $bucket->key();
         if (false !== stripos($key, ':')) {
             list($parent, $route) = explode(':', $key, 2);
-            $parent = new $bucket($parent, $bucket->max(), $bucket->rate());
+            $parent = new $bucket($parent, $bucket->max(), $bucket->rate(), $this->events);
             $this->buckets[] = $parent->configure(
                 $this->cache->get($parent->key(), $bucket->toArray())
             );
@@ -77,7 +87,7 @@ class Limiter implements Contract
         if ($existing = $this->cache->get($key)) {
             $settings = array_merge($settings, $existing, compact('max', 'rate'));
         }
-        $configured = (new $original($key, $max, $rate))
+        $configured = (new $original($key, $max, $rate, $this->events))
             ->configure($settings);
 
         array_push($this->buckets, $configured);
