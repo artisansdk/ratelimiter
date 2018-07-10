@@ -42,22 +42,17 @@ public function register()
 }
 ```
 
-If you do plan on using the `Evented` leaky bucket then you'll also want to add
-the following binding to your `register()` method to ensure that the bucket
-receives the event dispatcher via automatic dependency injection:
+If you do plan on using the `Evented` leaky bucket then you'll also want to change
+to the following binding to your `register()` method. The event dispatcher is
+injected automatically by Laravel:
 
 ```php
 use ArtisanSdk\RateLimiter\Buckets\Evented;
 use ArtisanSdk\RateLimiter\Contracts\Bucket;
-use ArtisanSdk\RateLimiter\Contracts\Limiter;
-use Illuminate\Contracts\Events\Dispatcher;
 
 public function register()
 {
     $this->app->bind(Bucket::class, Evented::class);
-    $this->app->when(Limiter::class)
-        ->needs(Dispatcher::class)
-        ->give($this->app->events);
 }
 ```
 
@@ -685,18 +680,13 @@ same otherwise.
 
 You can switch from the basic `Leaky` bucket to the `Evented` bucket by binding
 the interface to the concrete the `register()` method of your
-`App\Providers\AppServiceProvider` and wiring up the `Dispatcher` to the bucket:
+`App\Providers\AppServiceProvider`:
 
 ```php
 use ArtisanSdk\RateLimiter\Buckets\Evented;
 use ArtisanSdk\RateLimiter\Contracts\Bucket;
-use ArtisanSdk\RateLimiter\Contracts\Limiter;
-use Illuminate\Contracts\Events\Dispatcher;
 
 $this->app->bind(Bucket::class, Evented::class);
-$this->app->when(Limiter::class)
-    ->needs(Dispatcher::class)
-    ->give($this->app->events);
 ```
 
 And then you can listen for the following events:
