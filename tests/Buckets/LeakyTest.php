@@ -1,8 +1,9 @@
 <?php
 
-namespace ArtisanSdk\RateLimiter\Tests;
+namespace ArtisanSdk\RateLimiter\Tests\Buckets;
 
 use ArtisanSdk\RateLimiter\Buckets\Leaky;
+use ArtisanSdk\RateLimiter\Tests\TestCase;
 use Carbon\Carbon;
 
 class LeakyTest extends TestCase

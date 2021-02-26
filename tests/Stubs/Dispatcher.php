@@ -17,9 +17,9 @@ class Dispatcher implements Contract
      * Register an event listener with the dispatcher.
      *
      * @param string|array $events
-     * @param mixed        $listener
+     * @param mixed|null   $listener
      */
-    public function listen($events, $listener)
+    public function listen($events, $listener = null)
     {
     }
 
@@ -109,8 +109,6 @@ class Dispatcher implements Contract
 
     /**
      * Get the events that were fired.
-     *
-     * @return array
      */
     public function getEvents(): array
     {

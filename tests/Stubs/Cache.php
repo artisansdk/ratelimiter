@@ -63,7 +63,7 @@ class Cache implements Repository
      * @param mixed                                      $value
      * @param \DateTimeInterface|\DateInterval|float|int $minutes
      */
-    public function put($key, $value, $minutes)
+    public function put($key, $value, $minutes = null)
     {
         $this->storage[$key] = $value;
     }
@@ -77,7 +77,7 @@ class Cache implements Repository
      *
      * @return bool
      */
-    public function add($key, $value, $minutes)
+    public function add($key, $value, $minutes = null)
     {
         if ( ! $this->has($key)) {
             $this->put($key, $value, $minutes);
@@ -133,7 +133,6 @@ class Cache implements Repository
      *
      * @param string                                     $key
      * @param \DateTimeInterface|\DateInterval|float|int $minutes
-     * @param \Closure                                   $callback
      *
      * @return mixed
      */
@@ -153,8 +152,7 @@ class Cache implements Repository
     /**
      * Get an item from the cache, or store the default value forever.
      *
-     * @param string   $key
-     * @param \Closure $callback
+     * @param string $key
      *
      * @return mixed
      */
@@ -166,8 +164,7 @@ class Cache implements Repository
     /**
      * Get an item from the cache, or store the default value forever.
      *
-     * @param string   $key
-     * @param \Closure $callback
+     * @param string $key
      *
      * @return mixed
      */
@@ -211,7 +208,7 @@ class Cache implements Repository
      *
      * @param string                 $key   the key of the item to store
      * @param mixed                  $value the value of the item to store, must be serializable
-     * @param null|int|\DateInterval $ttl   Optional. The TTL value of this item. If no value is sent and
+     * @param int|\DateInterval|null $ttl   Optional. The TTL value of this item. If no value is sent and
      *                                      the driver supports TTL then the library may set a default value
      *                                      for it or let the driver take care of that.
      *
@@ -282,7 +279,7 @@ class Cache implements Repository
      * Persists a set of key => value pairs in the cache, with an optional TTL.
      *
      * @param iterable               $values a list of key => value pairs for a multiple-set operation
-     * @param null|int|\DateInterval $ttl    Optional. The TTL value of this item. If no value is sent and
+     * @param int|\DateInterval|null $ttl    Optional. The TTL value of this item. If no value is sent and
      *                                       the driver supports TTL then the library may set a default value
      *                                       for it or let the driver take care of that.
      *

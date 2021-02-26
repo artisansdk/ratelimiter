@@ -6,8 +6,6 @@ class Route extends User
 {
     /**
      * Get the resolver key used by the rate limiter for the unique request.
-     *
-     * @return string
      */
     public function key(): string
     {

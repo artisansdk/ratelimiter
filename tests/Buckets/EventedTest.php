@@ -1,6 +1,6 @@
 <?php
 
-namespace ArtisanSdk\RateLimiter\Tests;
+namespace ArtisanSdk\RateLimiter\Tests\Buckets;
 
 use ArtisanSdk\RateLimiter\Buckets\Evented;
 use ArtisanSdk\RateLimiter\Events\Event;
@@ -9,6 +9,7 @@ use ArtisanSdk\RateLimiter\Events\Filling;
 use ArtisanSdk\RateLimiter\Events\Leaked;
 use ArtisanSdk\RateLimiter\Events\Leaking;
 use ArtisanSdk\RateLimiter\Tests\Stubs\Dispatcher;
+use ArtisanSdk\RateLimiter\Tests\TestCase;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
@@ -22,19 +23,19 @@ class EventedTest extends TestCase
     {
         $dispatcher = new Dispatcher();
 
-        $bucket = new Evented('default', 60, 1, $dispatcher);
+        $bucket = new Evented($dispatcher, 'default', 60, 1);
         $this->assertSame('default', $bucket->key(), 'The default key for the bucket should be default.');
         $this->assertSame(60, $bucket->max(), 'The default max for the bucket should be 60.');
         $this->assertSame(1.0, $bucket->rate(), 'The default rate for the bucket should be 1 drip per second.');
         $this->assertSame(0, $bucket->drips(), 'The bucket should be reset to 0 drips when the bucket is created.');
 
-        $bucket = new Evented('fast', 30, 10, $dispatcher);
+        $bucket = new Evented($dispatcher, 'fast', 30, 10);
         $this->assertSame('fast', $bucket->key(), 'The passed key should be set on the bucket.');
         $this->assertSame(30, $bucket->max(), 'The passed max should be set on the bucket.');
         $this->assertSame(10.0, $bucket->rate(), 'The passed rate should be set on the bucket.');
         $this->assertSame(0, $bucket->drips(), 'The bucket should be reset to 0 drips when the bucket is created.');
 
-        $bucket = new Evented('slow', 30, 0.1, $dispatcher);
+        $bucket = new Evented($dispatcher, 'slow', 30, 0.1);
         $this->assertSame('slow', $bucket->key(), 'The passed key should be set on the bucket.');
         $this->assertSame(30, $bucket->max(), 'The passed max should be set on the bucket.');
         $this->assertSame(0.1, $bucket->rate(), 'The passed rate should be set on the bucket.');
@@ -47,7 +48,7 @@ class EventedTest extends TestCase
     public function testLeak()
     {
         $dispatcher = new Dispatcher();
-        $bucket = new Evented('default', 60, 1, $dispatcher);
+        $bucket = new Evented($dispatcher, 'default', 60, 1);
         $bucket->leak();
         $events = $dispatcher->getEvents();
         $this->assertCount(2, $events, 'There should have been 2 events dispatched by a call to leak(): Leaking and Leaked.');
@@ -78,7 +79,7 @@ class EventedTest extends TestCase
     public function testFill()
     {
         $dispatcher = new Dispatcher();
-        $bucket = new Evented('default', 60, 1, $dispatcher);
+        $bucket = new Evented($dispatcher, 'default', 60, 1);
         $bucket->fill(10);
         $events = $dispatcher->getEvents();
         $this->assertCount(2, $events, 'There should have been 2 events dispatched by a call to fill(): Filling and Filled.');

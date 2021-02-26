@@ -50,7 +50,6 @@ class Middleware
      * Handle an incoming request.
      *
      * @param \Illuminate\Http\Request $request
-     * @param \Closure                 $next
      *
      * @throws \ArtisanSdk\RateLimiter\Exception
      *
@@ -64,11 +63,7 @@ class Middleware
 
         if ($limiter->exceeded()) {
             $limiter->timeout($resolver->duration());
-            throw $this->buildException(
-                $limiter->limit(),
-                $limiter->remaining(),
-                $limiter->backoff()
-            );
+            throw $this->buildException($limiter->limit(), $limiter->remaining(), $limiter->backoff());
         }
 
         $limiter->hit();
@@ -85,11 +80,8 @@ class Middleware
      * Make an instance of the request resolver.
      *
      * @param \Illuminate\Http\Request $request
-     * @param array                    $args
      *
      * @throws \InvalidArgumentException for an invalid resolver class
-     *
-     * @return \ArtisanSdk\RateLimiter\Contracts\Resolver
      */
     protected function makeResolver(Request $request, array $args = []): Resolver
     {
@@ -109,8 +101,6 @@ class Middleware
 
     /**
      * Configure the limiter from the resolver.
-     *
-     * @param \ArtisanSdk\RateLimiter\Contracts\Resolver $resolver
      *
      * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
@@ -144,12 +134,9 @@ class Middleware
     /**
      * Add the limit header information to the given response.
      *
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     * @param int                                        $limit     of hits allowed
-     * @param int                                        $remaining hits allowed
-     * @param int                                        $backoff   before next hit should be attempted
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param int $limit     of hits allowed
+     * @param int $remaining hits allowed
+     * @param int $backoff   before next hit should be attempted
      */
     protected function addHeaders(Response $response, int $limit, int $remaining, int $backoff = null): Response
     {
@@ -166,8 +153,6 @@ class Middleware
      * @param int $limit     of hits allowed
      * @param int $remaining hits allowed
      * @param int $backoff   before next hit should be attempted
-     *
-     * @return array
      */
     protected function getHeaders(int $limit, int $remaining, int $backoff = null): array
     {

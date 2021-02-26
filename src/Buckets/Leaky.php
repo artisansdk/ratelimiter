@@ -112,8 +112,6 @@ class Leaky implements Bucket
 
     /**
      * Get the number of drips in the bucket.
-     *
-     * @return int
      */
     public function drips(): int
     {
@@ -122,8 +120,6 @@ class Leaky implements Bucket
 
     /**
      * Get the remaining drips before the bucket overflows.
-     *
-     * @return int
      */
     public function remaining(): int
     {
@@ -132,8 +128,6 @@ class Leaky implements Bucket
 
     /**
      * Get the duration in seconds before the bucket is fully drained.
-     *
-     * @return float
      */
     public function duration(): float
     {
@@ -146,8 +140,6 @@ class Leaky implements Bucket
 
     /**
      * Is the bucket full?
-     *
-     * @return bool
      */
     public function isFull(): bool
     {
@@ -156,8 +148,6 @@ class Leaky implements Bucket
 
     /**
      * Is the bucket empty?
-     *
-     * @return bool
      */
     public function isEmpty(): bool
     {
@@ -168,8 +158,6 @@ class Leaky implements Bucket
      * Let the bucket leak at the rate per second.
      *
      * @param int|float $rate
-     *
-     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function leak($rate = null): Bucket
     {
@@ -187,10 +175,6 @@ class Leaky implements Bucket
 
     /**
      * Fill the bucket with the drips.
-     *
-     * @param int $drips
-     *
-     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function fill(int $drips = 1): Bucket
     {
@@ -201,8 +185,6 @@ class Leaky implements Bucket
 
     /**
      * Reset the bucket to empty.
-     *
-     * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function reset(): Bucket
     {
@@ -214,8 +196,6 @@ class Leaky implements Bucket
 
     /**
      * Configure the setting for the bucket.
-     *
-     * @param array $settings
      *
      * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
@@ -276,10 +256,6 @@ class Leaky implements Bucket
 
     /**
      * Get the bounded number of drips.
-     *
-     * @param int $drips
-     *
-     * @return int
      */
     protected function bounded(int $drips): int
     {

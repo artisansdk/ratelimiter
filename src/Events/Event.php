@@ -18,8 +18,7 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
     /**
      * Populate the payload of the event.
      *
-     * @param string $key     of the bucket
-     * @param array  $payload
+     * @param string $key of the bucket
      */
     public function __construct(string $key, array $payload = [])
     {
@@ -53,8 +52,6 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
 
     /**
      * Fill the event with the payload.
-     *
-     * @param array $payload
      *
      * @return \ArtisanSdk\RateLimiter\Events\Event
      */

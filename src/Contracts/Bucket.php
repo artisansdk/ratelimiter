@@ -44,15 +44,11 @@ interface Bucket extends Arrayable, Jsonable, JsonSerializable
 
     /**
      * Is the bucket full?
-     *
-     * @return bool
      */
     public function isFull(): bool;
 
     /**
      * Is the bucket empty?
-     *
-     * @return bool
      */
     public function isEmpty(): bool;
 
@@ -65,8 +61,6 @@ interface Bucket extends Arrayable, Jsonable, JsonSerializable
 
     /**
      * Configure the setting for the bucket.
-     *
-     * @param array $settings
      *
      * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */

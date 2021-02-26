@@ -64,8 +64,6 @@ class User implements Resolver
      * Get the resolver key used by the rate limiter for the unique request.
      *
      * @throws \RuntimeException
-     *
-     * @return string
      */
     public function key(): string
     {
@@ -86,8 +84,6 @@ class User implements Resolver
 
     /**
      * Get the max number of requests allowed by the rate limiter.
-     *
-     * @return int
      */
     public function max(): int
     {
@@ -96,8 +92,6 @@ class User implements Resolver
 
     /**
      * Get the replenish rate in requests per second for the rate limiter.
-     *
-     * @return float
      */
     public function rate(): float
     {
@@ -106,8 +100,6 @@ class User implements Resolver
 
     /**
      * Get the duration in minutes the rate limiter will timeout.
-     *
-     * @return int
      */
     public function duration(): int
     {
@@ -148,8 +140,6 @@ class User implements Resolver
 
     /**
      * Set the user resolver.
-     *
-     * @param \Closure $resolver
      */
     public function setUserResolver(Closure $resolver)
     {

@@ -53,8 +53,6 @@ class Request extends HttpRequest
 
     /**
      * Set the reoute resolver.
-     *
-     * @param \Closure $resolver
      */
     public function setRouteResolver(Closure $resolver)
     {

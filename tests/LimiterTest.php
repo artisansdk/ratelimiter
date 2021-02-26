@@ -189,7 +189,7 @@ class LimiterTest extends TestCase
     {
         $cache = new Cache();
         $dispatcher = new Dispatcher();
-        $bucket = new Evented('foo:bar', 60, 1, $dispatcher);
+        $bucket = new Evented($dispatcher, 'foo:bar', 60, 1);
 
         $limiter = new Limiter($cache, $bucket, $dispatcher);
         $this->assertCount(4, $dispatcher->getEvents(), 'There should have been 4 events dispatched because both the "foo" and "foo:bar" buckets should have been filled.');
