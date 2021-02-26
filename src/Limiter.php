@@ -144,10 +144,12 @@ class Limiter implements Contract
             return;
         }
 
+        $totalSeconds = $duration * 60;
+
         $this->cache->put(
             $this->getTimeoutKey(),
-            (int) $this->lastBucket()->timer() + ($duration * 60),
-            $duration
+            (int) $this->lastBucket()->timer() + $totalSeconds,
+            $totalSeconds
         );
     }
 
