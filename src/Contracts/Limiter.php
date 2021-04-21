@@ -28,6 +28,13 @@ interface Limiter
     public function timeout(int $duration = 1): void;
 
     /**
+     * Limit additional hits for the duration in seconds.
+     *
+     * @param int $duration in seconds for the limit to take effect
+     */
+    public function timeoutInSeconds(int $duration = 1): void;
+
+    /**
      * Increment the counter for the rate limiter.
      */
     public function hit(): int;
