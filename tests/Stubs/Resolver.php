@@ -35,6 +35,6 @@ class Resolver implements Contract
      */
     public function duration(): int
     {
-        return 2;
+        return 120;
     }
 }

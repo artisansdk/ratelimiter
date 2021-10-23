@@ -57,7 +57,7 @@ class User implements Resolver
         $this->request = $request;
         $this->max = $max ?? 60;
         $this->rate = $rate ?? 1;
-        $this->duration = $duration ?? 1;
+        $this->duration = $duration ?? 60;
     }
 
     /**

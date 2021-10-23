@@ -6,7 +6,7 @@ class User
 {
     public $max = 100;
     public $rate = 10.0;
-    public $duration = 1;
+    public $duration = 60;
 
     public function __construct($identifier)
     {

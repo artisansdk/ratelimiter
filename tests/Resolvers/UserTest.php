@@ -23,7 +23,7 @@ class UserTest extends TestCase
         $this->assertStringStartsWith(sha1('johndoe@example.test'), $resolver->key(), 'The key should be unique to the user.');
         $this->assertSame(60, $resolver->max(), 'The default max should be int(60).');
         $this->assertSame(1.0, $resolver->rate(), 'The default rate should be float(1).');
-        $this->assertSame(1, $resolver->duration(), 'The default rate should be int(1).');
+        $this->assertSame(60, $resolver->duration(), 'The default rate should be int(60).');
     }
 
     /**
@@ -31,10 +31,10 @@ class UserTest extends TestCase
      */
     public function testConfiguration()
     {
-        $resolver = new Resolver(Request::createFromGlobals(), 30, 0.1, 5);
+        $resolver = new Resolver(Request::createFromGlobals(), 30, 0.1, 300);
         $this->assertSame(30, $resolver->max(), 'The customized max should be int(30).');
         $this->assertSame(0.1, $resolver->rate(), 'The customized rate should be float(0.1).');
-        $this->assertSame(5, $resolver->duration(), 'The customized duration should be int(5).');
+        $this->assertSame(300, $resolver->duration(), 'The customized duration should be int(300).');
     }
 
     /**
@@ -68,11 +68,11 @@ class UserTest extends TestCase
      */
     public function testGuestRates()
     {
-        $resolver = new Resolver(Request::createFromGlobals(), '30|60', '0.1|1', '10|1');
+        $resolver = new Resolver(Request::createFromGlobals(), '30|60', '0.1|1', '600|60');
 
         $this->assertSame(30, $resolver->max(), 'The guest max should be int(30).');
         $this->assertSame(0.1, $resolver->rate(), 'The guest rate should be float(0.1).');
-        $this->assertSame(10, $resolver->duration(), 'The guest duration should be int(10).');
+        $this->assertSame(600, $resolver->duration(), 'The guest duration should be int(600).');
 
         $resolver->setUserResolver(function ($request) {
             return $request->user('johndoe@example.test');
@@ -80,7 +80,7 @@ class UserTest extends TestCase
 
         $this->assertSame(60, $resolver->max(), 'The user max should be int(60).');
         $this->assertSame(1.0, $resolver->rate(), 'The user rate should be float(1).');
-        $this->assertSame(1, $resolver->duration(), 'The user duration should be int(1).');
+        $this->assertSame(60, $resolver->duration(), 'The user duration should be int(60).');
     }
 
     /**
@@ -88,11 +88,11 @@ class UserTest extends TestCase
      */
     public function testUserRates()
     {
-        $resolver = new Resolver(Request::createFromGlobals(), '60|max', '1|rate', '10|duration');
+        $resolver = new Resolver(Request::createFromGlobals(), '60|max', '1|rate', '600|duration');
 
         $this->assertSame(60, $resolver->max(), 'The guest max should be int(60).');
         $this->assertSame(1.0, $resolver->rate(), 'The guest rate should be float(1).');
-        $this->assertSame(10, $resolver->duration(), 'The guest duration should be int(10).');
+        $this->assertSame(600, $resolver->duration(), 'The guest duration should be int(600).');
 
         $resolver->setUserResolver(function ($request) {
             return $request->user('johndoe@example.test');
@@ -100,6 +100,6 @@ class UserTest extends TestCase
 
         $this->assertSame(100, $resolver->max(), 'The user max should be int(100).');
         $this->assertSame(10.0, $resolver->rate(), 'The user rate should be float(10).');
-        $this->assertSame(1, $resolver->duration(), 'The user duration should be int(1).');
+        $this->assertSame(60, $resolver->duration(), 'The user duration should be int(60).');
     }
 }

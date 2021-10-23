@@ -134,11 +134,11 @@ class Limiter implements Contract
     }
 
     /**
-     * Limit additional hits for the duration in minutes.
+     * Limit additional hits for the duration in seconds.
      *
-     * @param int $duration in minutes for the limit to take effect
+     * @param int $duration in seconds for the limit to take effect
      */
-    public function timeout(int $duration = 1): void
+    public function timeout(int $duration = 60): void
     {
         if ($this->hasTimeout()) {
             return;
@@ -146,7 +146,7 @@ class Limiter implements Contract
 
         $this->cache->put(
             $this->getTimeoutKey(),
-            (int) $this->lastBucket()->timer() + ($duration * 60),
+            ((int) $this->lastBucket()->timer()) + $duration,
             $duration
         );
     }
@@ -161,7 +161,7 @@ class Limiter implements Contract
             $this->cache->put(
                 $bucket->key(),
                 $bucket->toArray(),
-                ceil($bucket->duration() / 60)
+                $bucket->duration()
             );
         }
 

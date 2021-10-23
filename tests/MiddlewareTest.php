@@ -71,7 +71,7 @@ class MiddlewareTest extends TestCase
         $this->assertInstanceOf(Exception::class, $exception, 'The exception thrown should be a rate limiter exception.');
         $this->assertEquals(2, $headers['X-RateLimit-Limit'], 'The limit should not increase with additional hits via the middleware.');
         $this->assertEquals(0, $headers['X-RateLimit-Remaining'], 'The remaining hits should still be 0 with additional hits via the middleware.');
-        $this->assertSame($resolver->duration() * 60, $limiter->backoff(), 'The backoff should be the duration of the timeout in seconds according to the resolver.');
+        $this->assertSame($resolver->duration(), $limiter->backoff(), 'The backoff should be the duration of the timeout in seconds according to the resolver.');
         $this->assertEquals($limiter->backoff(), $headers['Retry-After'], 'The Retry-After header should be the same as the backoff.');
         $this->assertEquals($timeout->getTimestamp(), $headers['X-RateLimit-Reset'], 'The X-RateLimit-Reset header should be the same as the timestamp of the rate limiter timeout.');
 
@@ -92,7 +92,7 @@ class MiddlewareTest extends TestCase
         $this->assertInstanceOf(Exception::class, $exception, 'The exception thrown should be a rate limiter exception.');
         $this->assertEquals(2, $headers['X-RateLimit-Limit'], 'The limit should not increase with additional hits via the middleware while in a timeout.');
         $this->assertEquals(0, $headers['X-RateLimit-Remaining'], 'The remaining hits should still be 0 with additional hits via the middleware while in a timeout.');
-        $this->assertSame($resolver->duration() * 60 - 10, $limiter->backoff(), 'The backoff should be 10 seconds less now the timeout has elapsed 10 seconds.');
+        $this->assertSame($resolver->duration() - 10, $limiter->backoff(), 'The backoff should be 10 seconds less now the timeout has elapsed 10 seconds.');
         $this->assertSame($limiter->backoff(), $headers['Retry-After'], 'The Retry-After header should still be the same as the backoff.');
         $this->assertSame($timeout->getTimestamp(), $headers['X-RateLimit-Reset'], 'The X-RateLimit-Reset header should still be the same as the timestamp of the rate limiter timeout.');
     }

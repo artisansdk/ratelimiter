@@ -92,7 +92,7 @@ class LimiterTest extends TestCase
         $this->assertSame(60, $limiter->backoff(), 'The timeout should have set the backoff duration to be 60 seconds.');
 
         $timer = $cache->get('foo:timeout');
-        $limiter->timeout(10);
+        $limiter->timeout(600);
         $this->assertSame($timer, $cache->get('foo:timeout'), 'The timeout should not have changed because calling timeout on the rate limiter more than once should have no effect.');
     }
 

@@ -8,6 +8,7 @@
 .google-services.json
 .idea
 .php_cs.cache
+.phpunit.result.cache
 .profile
 .viminfo
 *.sublime-project

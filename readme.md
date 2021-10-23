@@ -248,29 +248,30 @@ or `throttle:\App\Http\SlowLimits`.
 
 #### Bonus: Overflow Penalties
 
-This package's implementation also puts a customizable penalty on the filler (the client)
-if they overflow (exceed the bursting limits). This is done in the form of a third
-configuration setting such as `throttle:60,1,1`. The default value is `1` minute which
-is close to the default behavior of Laravel's rate limiter. This value however is
-independent of all the others whereas Laravel's is coupled to the decay time. This
-third configuration sets a penalty in minutes the client must rest before making
-another request. This is enforced even if the bursting rates would normally reset
-according to the leak rate. For example, a `throttle:60,1,10` would enact a `10` minute
-timeout for exceeding the `60` requests burst limit. This would slow down a hacker
-`10x` more than with Laravel's built in rate limiter.
+This package's implementation also puts a customizable penalty on the filler
+(the client) if they overflow (exceed the bursting limits). This is done in the
+form of a third configuration setting such as `throttle:60,1,60`. The default
+value is `60` minute which is close to the default behavior of Laravel's rate
+limiter. This value however is independent of all the others whereas Laravel's
+is coupled to the decay time. This third configuration sets a penalty in seconds
+the client must rest before making another request. This is enforced even if the
+bursting rates would normally reset according to the leak rate. For example, a
+`throttle:60,1,600` would enact a `600` second (`10` minute) timeout for
+exceeding the `60` requests burst limit. This would slow down a hacker `10x`
+more than with Laravel's built in rate limiter.
 
 Furthermore the timeout is customizable differently for guests vs. authenticated
-users by using the split configuration such as `throttle:60|100,1|10,1440|60`.
+users by using the split configuration such as `throttle:60|100,1|10,86400|3600`.
 This would translate to a guest being able to make up to `60` requests at once or
 at a constant rate of `1 r/s` and if they violate these rules then they will have
-exceeded their daily limit and be rate limited for `24` hours (`1440` minutes).
+exceeded their daily limit and be rate limited for `24` hours (`86400` seconds).
 Meanwhile, an authenticated user can make up to `100` requests at once or at a
 constant rate of `10 r/s` all day long (`846K` requests per day) and if they
-violate the rules then they go into only a `1` hour (`60` minute) timeout. Using
-the route-based rate limiter for a login route you could do something like
-`throttle:Resolvers\Route::class,3,0.1,10` which would limit the login to `1` request
-every `10` seconds (`1r/10s` --> `0.1 r/s`) and up to `3` in `10` seconds with any
-violators being banned for `10` minutes.
+violate the rules then they go into only a `60` minute (`3600` second) timeout.
+Using the route-based rate limiter for a login route you could do something like
+`throttle:Resolvers\Route::class,3,0.1,600` which would limit the login to `1`
+request every `10` seconds (`1r/10s` --> `0.1 r/s`) and up to `3` in `10`
+seconds with any violators being banned for `10` minutes (`600` minutes).
 
 ### Different Rates for Guests vs. Authenticated Users
 
@@ -290,12 +291,12 @@ All of the configuration settings for `max`, `rate`, and `duration` are configur
 this way (something Laravel's rate limiter doesn't do) so you can pass pipe-separated
 limits for guests and users for any of these settings. The signature format is of
 the form `throttle:max|rate|duration`. For example you could do:
-`throttle:60|120,1|2,5|1` to set the following limits:
+`throttle:60|120,1|2,300|60` to set the following limits:
 
-|  | Burst Limit | Leak Rate | Timeout Duration |
-| --- | --- | --- | --- |
-| Guest | 60 requests | 1 r/s | 5 minutes |
-| User | 120 requests | 2 r/s | 1 minute |
+|       | Burst Limit  | Leak Rate | Timeout Duration |
+| ----- | ------------ | --------- | ---------------- |
+| Guest | 60 requests  | 1 r/s     | 300 seconds      |
+| User  | 120 requests | 2 r/s     | 60 seconds       |
 
 Additionally all the user limits accept a string which may be used to fetch the value
 dynamically from the authenticated user. Even if you do not support a database
@@ -341,10 +342,11 @@ the point of blocking their user permanently.
 
 ### Setting a Custom Cache for the Rate Limiter
 
-While Laravel is smart enough to resolve your default cache driver, you may specifically
-want to use specialized Redis or Memcached cache for the hits and timers for the
-Leaky Buckets. In that case you'll need to register that configuration in your `App\Providers\AppServiceProvider` class. Just add to your `register()` method the
-following (or better, abstract it to it's own method):
+While Laravel is smart enough to resolve your default cache driver, you may
+specifically want to use specialized Redis or Memcached cache for the hits and
+timers for the Leaky Buckets. In that case you'll need to register that
+configuration in your `App\Providers\AppServiceProvider` class. Just add to your
+`register()` method the following (or better, abstract it to its own method):
 
 ```php
 use ArtisanSdk\RateLimiter\Contracts\Limiter;
@@ -406,15 +408,16 @@ may need to implement a custom implementation of `ArtisandSdk\RateLimiter\Contra
 
 #### Using the Built In Resolvers
 
-The package has several built in resolvers with the default being to uniquely identify
-the user and apply a global rate limit. All other resolvers should fall back to this resolver or create a sub bucket. This ensures that the resolver's more granular rate
-limits count towards the global rate limit for the user. All of the built in resolvers
-use the same default settings for the rates including for both guests and authenticated
-users:
+The package has several built in resolvers with the default being to uniquely
+identify the user and apply a global rate limit. All other resolvers should fall
+back to this resolver or create a sub bucket. This ensures that the resolver's
+more granular rate limits count towards the global rate limit for the user. All
+of the built in resolvers use the same default settings for the rates including
+for both guests and authenticated users:
 
-| Max Requests | Leak Rate | Timeout Duration |
-| --- | --- | --- |
-| 60 total | 1 per second | 1 minute |
+| Max Requests | Leak Rate    | Timeout Duration |
+| ------------ | ------------ | ---------------- |
+| 60 total     | 1 per second | 60 seconds       |
 
 ```php
 // Use the current user as the resolver (default)
@@ -422,15 +425,15 @@ users:
 use ArtisanSdk\RateLimiter\Resolvers\User;
 Route::middleware('throttle');
 Route::middleware('throttle:60,1,1');
-Route::middleware('throttle:'.User::class.',60,1,1');
+Route::middleware('throttle:'.User::class.',60,1,60');
 
 // Add the route to the bucket key to add more granularity
 use ArtisanSdk\RateLimiter\Resolvers\Route;
-Route::middleware('throttle:'.Route::class.',60,1,1');
+Route::middleware('throttle:'.Route::class.',60,1,60');
 
 // Add a tag to the bucket key to group related resources
 use ArtisanSdk\RateLimiter\Resolvers\Tag;
-Route::middleware('throttle:'.Tag::class.',foo,60,1,1');
+Route::middleware('throttle:'.Tag::class.',foo,60,1,60');
 ```
 
 #### Creating Custom Resolvers
@@ -447,7 +450,7 @@ class UserResourceLimits extends Resolver
 {
     protected $max = '50|100'; // 50 drips for guests, 100 drips for users
     protected $rate = '1|10'; // 1 drip per second for guests, 10 drips per second for users
-    protected $duration = 60; // 60 minute timeout
+    protected $duration = 3600; // 3600 second (60 minute) timeout
     protected $resource = 'user'; // resource key
 
     public function __construct(Request $request)
@@ -482,23 +485,24 @@ Route::middleware('throttle:'.UserResourceLimits::class)
 Route::get('/dashboard', 'Dashboard@index');
 ```
 
-Each of the `/api/user` prefixed routes would then log a hit against the `user` resource
-bucket while the `/dashboard` would use the default global limits. A visit to
-the dashboard would increment the global bucket, while a visit to a user resource
-endpoint would increment both the `user` resource bucket and the global bucket.
-The `UserResourceLimits` resolver uses the hard-coded values so that there is only
-one configurable place to customize the settings. This is purposefully closed and
-if a more extensible solution is needed then the built-in `Tag` resolver would be
-a better option.
+Each of the `/api/user` prefixed routes would then log a hit against the `user`
+resource bucket while the `/dashboard` would use the default global limits. A
+visit to the dashboard would increment the global bucket, while a visit to a
+user resource endpoint would increment both the `user` resource bucket and the
+global bucket. The `UserResourceLimits` resolver uses the hard-coded values so
+that there is only one configurable place to customize the settings. This is
+purposefully closed and if a more extensible solution is needed then the
+built-in `Tag` resolver would be a better option.
 
 #### Setting a Custom Resolver as the Default
 
-Similar to how a custom cache `Repository` can be injected into the rate `Limiter`
-class, a secondary argument allows for the injection of a custom
-`ArtisanSdk\RateLimiter\Contracts\Resolver` implementation. The default resolver is
-`ArtisanSdk\RateLimiter\Resolvers\User` and to override this, you to bind the
-custom resolver as default by registering it in your `App\Providers\AppServiceProvider`
-class. Just add to your `register()` method the following (or better, abstract it to it's own method):
+Similar to how a custom cache `Repository` can be injected into the rate
+`Limiter` class, a secondary argument allows for the injection of a custom
+`ArtisanSdk\RateLimiter\Contracts\Resolver` implementation. The default resolver
+is `ArtisanSdk\RateLimiter\Resolvers\User` and to override this, you to bind the
+custom resolver as default by registering it in your
+`App\Providers\AppServiceProvider` class. Just add to your `register()` method
+the following (or better, abstract it to it's own method):
 
 ```php
 use ArtisanSdk\RateLimiter\Middleware;
@@ -556,8 +560,8 @@ while(/* some function that gets a job */) {
 
         // Put the bucket in a timeout until it drains
         // or you could use any arbitrary duration (or even allow for overflow)
-        $minutes = $bucket->duration() * 60;
-        $limiter->timeout($minutes);
+        $seconds = $bucket->duration();
+        $limiter->timeout($seconds);
         break;
     }
 
@@ -592,15 +596,16 @@ that are unique to the implementation.
 If the logic of the rate limiter is not to your liking, you can use the `Middleware`
 and the leaky `Bucket` but implement your own instance of
 `ArtisanSdk\RateLimiter\Contracts\Limiter`. Alternatively you could re-implement
-Laravel's fixed decay rate limiter by modifying the calls that refer to the Leaky
+Laravel's fixed Decay Rate Limiter by modifying the calls that refer to the Leaky
 Bucket Algorithm with more generic methods on a custom bucket. So long as the
 `Limiter` contract is implemented, then the `Middleware` can be configured to
 inject your custom `Limiter`.
 
-Similar to how a custom cache `Repository` can be injected into the rate `Limiter`
-class, the `Middleware` can receive your custom `Limiter` as an injected dependency.
-You bind the custom `Limiter` by registering it in your `App\Providers\AppServiceProvider`
-class. Just add to your `register()` method the following (or better, abstract it to it's own method):
+Similar to how a custom cache `Repository` can be injected into the rate
+`Limiter` class, the `Middleware` can receive your custom `Limiter` as an
+injected dependency. You bind the custom `Limiter` by registering it in your
+`App\Providers\AppServiceProvider` class. Just add to your `register()` method
+the following (or better, abstract it to it's own method):
 
 ```php
 use App\Http\RateLimiter;
@@ -735,7 +740,7 @@ See the `composer.json` for more details on their execution and reporting output
 
 ## Licensing
 
-Copyright (c) 2018 [Artisans Collaborative](https://artisanscollaborative.com)
+Copyright (c) 2018-2021 [Artisans Collaborative](https://artisanscollaborative.com)
 
 This package is released under the MIT license. Please see the LICENSE file
 distributed with every copy of the code for commercial licensing terms.
