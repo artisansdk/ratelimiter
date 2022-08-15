@@ -161,7 +161,7 @@ class Limiter implements Contract
             $this->cache->put(
                 $bucket->key(),
                 $bucket->toArray(),
-                $bucket->duration()
+                max(1, $bucket->duration())
             );
         }
 
