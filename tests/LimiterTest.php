@@ -63,10 +63,12 @@ class LimiterTest extends TestCase
     public function testExceeded()
     {
         $cache = new Cache();
-        $limiter = new Limiter($cache, new Leaky('default', 2, 1));
+        $limiter = new Limiter($cache, new Leaky('default', 2, 2));
 
         $limiter->hit();
         $this->assertFalse($limiter->exceeded(), 'The rate limiter should not be exceeded with 1 hit when the limit is 2.');
+
+        $limiter = new Limiter($cache, new Leaky('default', 2, 2));
 
         $limiter->hit();
         $this->assertTrue($limiter->exceeded(), 'The rate limiter should be exceeded with 2 hits when the limit is 2.');
