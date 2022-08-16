@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Buckets;
 
 use ArtisanSdk\RateLimiter\Contracts\Bucket;
@@ -115,7 +117,7 @@ class Leaky implements Bucket
      */
     public function drips(): int
     {
-        return max(0, ceil($this->drips));
+        return (int) max(0, ceil($this->drips));
     }
 
     /**
@@ -123,7 +125,7 @@ class Leaky implements Bucket
      */
     public function remaining(): int
     {
-        return max(0, $this->max() - $this->drips());
+        return (int) max(0, $this->max() - $this->drips());
     }
 
     /**
@@ -131,10 +133,10 @@ class Leaky implements Bucket
      */
     public function duration(): float
     {
-        return (float) max(0,
+        return (float) (max(0,
             microtime(true)
             + ($this->drips() / $this->rate())
-            - $this->timer()
+            - $this->timer())
         );
     }
 
@@ -166,7 +168,7 @@ class Leaky implements Bucket
         $timer = $this->timer();
         $now = $this->reset()->timer();
         $elapsed = $now - $timer;
-        $drops = floor($elapsed * $rate);
+        $drops = (int) floor($elapsed * $rate);
 
         $this->drips = $this->bounded($drips - $drops);
 
@@ -235,9 +237,9 @@ class Leaky implements Bucket
     /**
      * Convert the bucket into something JSON serializable.
      *
-     * @return array
+     * @return mixed
      */
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return $this->toArray();
     }
@@ -259,6 +261,6 @@ class Leaky implements Bucket
      */
     protected function bounded(int $drips): int
     {
-        return max(0, min($this->max(), $drips));
+        return (int) max(0, min($this->max(), $drips));
     }
 }

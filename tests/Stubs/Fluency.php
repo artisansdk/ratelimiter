@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Stubs;
 
 use ArtisanSdk\RateLimiter\Traits\Fluency as Concern;
@@ -9,6 +11,7 @@ class Fluency
     use Concern;
 
     protected $barString = 'foo';
+
     protected $barArray = ['foo'];
 
     public function __call($method, $arguments = [])

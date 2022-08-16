@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Stubs;
 
 use ArtisanSdk\RateLimiter\Contracts\Resolver as Contract;

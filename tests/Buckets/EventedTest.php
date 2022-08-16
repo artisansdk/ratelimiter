@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Buckets;
 
 use ArtisanSdk\RateLimiter\Buckets\Evented;

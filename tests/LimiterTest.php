@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests;
 
 use ArtisanSdk\RateLimiter\Buckets\Evented;
@@ -47,14 +49,16 @@ class LimiterTest extends TestCase
         $this->assertSame(60, $limiter->limit(), 'The default limit for the rate limiter should be 60.');
         $this->assertSame($original->toArray(), $cache->get('original'), 'The original bucket should have been persisted to the cache.');
 
-        $limiter->configure('changed', 100, 10)->hit();
-        $changed = $cache->get('changed');
+        $limiter->configure('changed', 100, 1)->hit();
+
+        $changed = $cache->get('changed', []);
 
         $this->assertNotSame($original->toArray(), $changed, 'The original bucket and the changed bucket should now be different.');
         $this->assertFalse($cache->has('original'), 'The original bucket for the rate limiter should have been removed when the bucket was reconfigured with a new key.');
         $this->assertTrue($cache->has('changed'), 'The key for the rate limiter bucket should have been configured as a string("changed").');
         $this->assertSame(100, $limiter->limit(), 'The limit for the rate limiter should have been configured as a int(100).');
-        $this->assertSame(10.0, $changed['rate'], 'The rate for the rate limiter bucket should have been configured as a float(10).');
+        $this->assertSame(99, $limiter->remaining(), 'The remaining hits for the rate limiter should be int(99) after int(1) hit when configured for max int(100) hits.');
+        $this->assertSame(1.0, $changed['rate'], 'The rate for the rate limiter bucket should have been configured as a float(1).');
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Resolvers;
 
 use ArtisanSdk\RateLimiter\Resolvers\User as Resolver;
@@ -52,7 +54,7 @@ class UserTest extends TestCase
         } catch (RuntimeException $exception) {
         }
 
-        if ( ! $exception) {
+        if (! $exception) {
             $this->fail('A RuntimeException should have been thrown because no route exists.');
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter;
 
 use ArtisanSdk\RateLimiter\Contracts\Resolver;
@@ -92,7 +94,7 @@ class Middleware
         }
 
         $resolver = new $class($request, ...$args);
-        if ( ! $resolver instanceof Resolver) {
+        if (! $resolver instanceof Resolver) {
             throw new InvalidArgumentException(get_class($resolver).' must be an instance of '.Resolver::class.'.');
         }
 
@@ -161,7 +163,7 @@ class Middleware
             'X-RateLimit-Remaining' => $remaining,
         ];
 
-        if ( ! is_null($backoff)) {
+        if (! is_null($backoff)) {
             $headers['Retry-After'] = $backoff;
             $headers['X-RateLimit-Reset'] = Carbon::now()->addSeconds($backoff)->getTimestamp();
         }

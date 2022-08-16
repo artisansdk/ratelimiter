@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Resolvers;
 
 class Route extends User
@@ -18,7 +20,7 @@ class Route extends User
         }
 
         $class = $route->getAction('uses');
-        if ( ! is_null($class) && is_string($class)) {
+        if (! is_null($class) && is_string($class)) {
             return $prefix.':'.sha1($class);
         }
 

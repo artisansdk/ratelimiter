@@ -1,12 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Stubs;
 
 use Closure;
+use DateTimeInterface;
 use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\InteractsWithTime;
 
 class Cache implements Repository
 {
+    use InteractsWithTime;
+
     /**
      * The storage implementation.
      *
@@ -21,22 +28,56 @@ class Cache implements Repository
      *
      * @return bool
      */
-    public function has($key)
+    public function has($key) : bool
     {
-        return isset($this->storage[$key]);
+        return ! is_null($this->get($key));
+    }
+
+    /**
+     * Determine if an item doesn't exist in the cache.
+     *
+     * @param  string  $key
+     *
+     * @return bool
+     */
+    public function missing($key) : bool
+    {
+        return ! $this->has($key);
     }
 
     /**
      * Retrieve an item from the cache by key.
      *
-     * @param string $key
+     * @param string|array $key
      * @param mixed  $default
      *
      * @return mixed
      */
-    public function get($key, $default = null)
+    public function get($key, $default = null) : mixed
     {
+        if (is_array($key)) {
+            return $this->many($key);
+        }
+
         return $this->storage[$key] ?? $default;
+    }
+
+    /**
+     * Retrieve multiple items from the cache by key.
+     *
+     * Items not found in the cache will have a null value.
+     *
+     * @param  array  $keys
+     *
+     * @return array
+     */
+    public function many(array $keys) : array
+    {
+        return collect($keys)
+            ->mapWithKeys(function ($key) {
+                return [$key => $this->get($key)];
+            })
+            ->all();
     }
 
     /**
@@ -49,40 +90,101 @@ class Cache implements Repository
      */
     public function pull($key, $default = null)
     {
-        $value = $this->get($key, $default);
-
-        $this->forget($key);
-
-        return $value;
+        return tap($this->get($key, $default), function () use ($key) {
+            $this->forget($key);
+        });
     }
 
     /**
      * Store an item in the cache.
      *
-     * @param string                                     $key
-     * @param mixed                                      $value
-     * @param \DateTimeInterface|\DateInterval|float|int $minutes
+     * @param  array|string  $key
+     * @param  mixed  $value
+     * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
+     *
+     * @return bool
      */
-    public function put($key, $value, $minutes = null)
+    public function put($key, $value, $ttl = null)
     {
+        if (is_array($key)) {
+            return $this->putMany($key, $value);
+        }
+
+        if (is_null($ttl)) {
+            return $this->forever($key, $value);
+        }
+
+        $seconds = $this->getSeconds($ttl);
+
+        if ($seconds <= 0) {
+            return $this->forget($key);
+        }
+
         $this->storage[$key] = $value;
+
+        return true;
+    }
+
+    /**
+     * Store an item in the cache indefinitely.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     *
+     * @return bool
+     */
+    public function forever($key, $value)
+    {
+        return $this->put($key, $value, PHP_INT_MAX);
+    }
+
+    /**
+     * Store multiple items in the cache for a given number of seconds.
+     *
+     * @param  array  $values
+     * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
+     *
+     * @return bool
+     */
+    public function putMany(array $values, $ttl = null)
+    {
+        $seconds = $this->getSeconds($ttl);
+
+        if ($seconds <= 0) {
+            return $this->deleteMultiple(array_keys($values));
+        }
+
+        foreach ($values as $key => $value) {
+            $this->storage[$key] = $value;
+        }
+
+        return $result;
     }
 
     /**
      * Store an item in the cache if the key does not exist.
      *
-     * @param string                                     $key
-     * @param mixed                                      $value
-     * @param \DateTimeInterface|\DateInterval|float|int $minutes
+     * @param  string                                     $key
+     * @param  mixed                                      $value
+     * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
      *
      * @return bool
      */
-    public function add($key, $value, $minutes = null)
+    public function add($key, $value, $ttl = null)
     {
-        if ( ! $this->has($key)) {
-            $this->put($key, $value, $minutes);
+        if (! is_null($ttl)) {
+            $seconds = $this->getSeconds($ttl);
 
-            return true;
+            if ($seconds <= 0) {
+                return false;
+            }
+
+            // If the value did not exist in the cache, we will put the value in the cache
+            // so it exists for subsequent requests. Then, we will return true so it is
+            // easy to know if the value gets added. Otherwise, we will return false.
+            if ($this->missing($key)) {
+                return $this->put($key, $value, $seconds);
+            }
         }
 
         return false;
@@ -118,41 +220,35 @@ class Cache implements Repository
     }
 
     /**
-     * Store an item in the cache indefinitely.
+     * Get an item from the cache, or execute the given Closure and store the result.
      *
-     * @param string $key
-     * @param mixed  $value
-     */
-    public function forever($key, $value)
-    {
-        $this->put($key, $value, 0);
-    }
-
-    /**
-     * Get an item from the cache, or store the default value.
-     *
-     * @param string                                     $key
-     * @param \DateTimeInterface|\DateInterval|float|int $minutes
+     * @param  string  $key
+     * @param  \Closure|\DateTimeInterface|\DateInterval|int|null  $ttl
+     * @param  \Closure  $callback
      *
      * @return mixed
      */
-    public function remember($key, $minutes, Closure $callback)
+    public function remember($key, $ttl, Closure $callback)
     {
         $value = $this->get($key);
 
-        if ( ! is_null($value)) {
+        // If the item exists in the cache we will just return this immediately and if
+        // not we will execute the given Closure and cache the result of that for a
+        // given number of seconds so it's available for all subsequent requests.
+        if (! is_null($value)) {
             return $value;
         }
 
-        $this->put($key, $value = $callback(), $minutes);
+        $this->put($key, $value = $callback(), value($ttl));
 
         return $value;
     }
 
     /**
-     * Get an item from the cache, or store the default value forever.
+     * Get an item from the cache, or execute the given Closure and store the result forever.
      *
-     * @param string $key
+     * @param  string  $key
+     * @param  \Closure  $callback
      *
      * @return mixed
      */
@@ -162,9 +258,10 @@ class Cache implements Repository
     }
 
     /**
-     * Get an item from the cache, or store the default value forever.
+     * Get an item from the cache, or execute the given Closure and store the result forever.
      *
-     * @param string $key
+     * @param  string  $key
+     * @param  \Closure  $callback
      *
      * @return mixed
      */
@@ -172,13 +269,28 @@ class Cache implements Repository
     {
         $value = $this->get($key);
 
-        if ( ! is_null($value)) {
+        // If the item exists in the cache we will just return this immediately
+        // and if not we will execute the given Closure and cache the result
+        // of that forever so it is available for all subsequent requests.
+        if (! is_null($value)) {
             return $value;
         }
 
         $this->forever($key, $value = $callback());
 
         return $value;
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @return bool
+     */
+    public function set($key, $value, $ttl = null) : bool
+    {
+        $this->storage[$key] = $value;
+
+        return true;
     }
 
     /**
@@ -194,45 +306,11 @@ class Cache implements Repository
     }
 
     /**
-     * Get the cache store implementation.
+     * @inheritdoc
      *
-     * @return \Illuminate\Contracts\Cache\Store
+     * @return bool
      */
-    public function getStore()
-    {
-        return $this->storage; // this is return type non-compliant
-    }
-
-    /**
-     * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.
-     *
-     * @param string                 $key   the key of the item to store
-     * @param mixed                  $value the value of the item to store, must be serializable
-     * @param int|\DateInterval|null $ttl   Optional. The TTL value of this item. If no value is sent and
-     *                                      the driver supports TTL then the library may set a default value
-     *                                      for it or let the driver take care of that.
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException MUST be thrown if the $key string is not a legal value
-     *
-     * @return bool true on success and false on failure
-     */
-    public function set($key, $value, $ttl = null)
-    {
-        $this->storage[$key] = $value;
-
-        return ture;
-    }
-
-    /**
-     * Delete an item from the cache by its unique key.
-     *
-     * @param string $key the unique cache key of the item to delete
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException MUST be thrown if the $key string is not a legal value
-     *
-     * @return bool True if the item was successfully removed. False if there was an error.
-     */
-    public function delete($key)
+    public function delete($key) : bool
     {
         unset($this->storage[$key]);
 
@@ -244,7 +322,7 @@ class Cache implements Repository
      *
      * @return bool true on success and false on failure
      */
-    public function clear()
+    public function clear() : bool
     {
         $this->storage = [];
 
@@ -252,47 +330,30 @@ class Cache implements Repository
     }
 
     /**
-     * Obtains multiple cache items by their unique keys.
+     * @inheritdoc
      *
-     * @param iterable $keys    a list of keys that can obtained in a single operation
-     * @param mixed    $default default value to return for keys that do not exist
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException MUST be thrown if $keys is neither an array nor a Traversable,
-     *                                                   or if any of the $keys are not a legal value
-     *
-     * @return iterable A list of key => value pairs. Cache keys that do not exist or are stale will have $default as value.
+     * @return iterable
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple($keys, $default = null) : iterable
     {
         $values = [];
 
         foreach ($keys as $key => $value) {
-            if ($this->has($key)) {
-                $values[$key] = $this->get($key);
-            }
+            $values[$key] = $this->get($key, $default);
         }
 
         return $values;
     }
 
     /**
-     * Persists a set of key => value pairs in the cache, with an optional TTL.
+     * @inheritdoc
      *
-     * @param iterable               $values a list of key => value pairs for a multiple-set operation
-     * @param int|\DateInterval|null $ttl    Optional. The TTL value of this item. If no value is sent and
-     *                                       the driver supports TTL then the library may set a default value
-     *                                       for it or let the driver take care of that.
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     *                                                   MUST be thrown if $values is neither an array nor a Traversable,
-     *                                                   or if any of the $values are not a legal value
-     *
-     * @return bool true on success and false on failure
+     * @return bool
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = null) : bool
     {
         foreach ($values as $key => $value) {
-            if ( ! $this->set($key, $value, $ttl)) {
+            if (! $this->set($key, $value, $ttl)) {
                 return false;
             }
         }
@@ -301,23 +362,45 @@ class Cache implements Repository
     }
 
     /**
-     * Deletes multiple cache items in a single operation.
+     * @inheritdoc
      *
-     * @param iterable $keys a list of string-based keys to be deleted
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException MUST be thrown if $keys is neither an array nor a Traversable,
-     *                                                   or if any of the $keys are not a legal value
-     *
-     * @return bool True if the items were successfully removed. False if there was an error.
+     * @return bool
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys) : bool
     {
         foreach ($keys as $key) {
-            if ( ! $this->delete($key)) {
+            if (! $this->delete($key)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Calculate the number of seconds for the given TTL.
+     *
+     * @param  \DateTimeInterface|\DateInterval|int  $ttl
+     * @return int
+     */
+    protected function getSeconds($ttl)
+    {
+        $duration = $this->parseDateInterval($ttl);
+
+        if ($duration instanceof DateTimeInterface) {
+            $duration = Carbon::now()->diffInRealSeconds($duration, false);
+        }
+
+        return (int) ($duration > 0 ? $duration : 0);
+    }
+
+    /**
+     * Get the cache store implementation.
+     *
+     * @return array
+     */
+    public function getStore()
+    {
+        return $this->storage; // this is return type non-compliant with the interface
     }
 }

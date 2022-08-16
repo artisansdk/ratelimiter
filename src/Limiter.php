@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter;
 
 use ArtisanSdk\RateLimiter\Buckets\Evented;
@@ -67,7 +69,7 @@ class Limiter implements Contract
      *
      * @param string    $key  for the rate
      * @param int       $max  hits against the limiter
-     * @param int|float $rate in which limiter decays or leaks
+     * @param int|float $rate in which limiter decays or leaks per second
      *
      * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
@@ -75,14 +77,15 @@ class Limiter implements Contract
     {
         $bucket = $this->lastBucket();
 
+        if ($bucket->key() !== $key) {
+            $bucket->reset();
+            $this->cache->forget($bucket->key());
+        }
+
         $settings = [
             'drips' => $bucket->drips(),
             'timer' => $bucket->timer(),
         ];
-
-        if ($bucket->key() !== $key) {
-            $this->reset();
-        }
 
         $original = array_pop($this->buckets);
 
@@ -161,7 +164,7 @@ class Limiter implements Contract
             $this->cache->put(
                 $bucket->key(),
                 $bucket->toArray(),
-                $bucket->duration()
+                max(1, $bucket->duration()) // $ttl to $seconds conversion requires minimally 1s
             );
         }
 
@@ -204,12 +207,16 @@ class Limiter implements Contract
 
     /**
      * Clear the hits and timeout timer for the rate limiter.
+     *
+     * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
-    public function clear(): void
+    public function clear()
     {
         $this->reset();
 
         $this->cache->forget($this->getTimeoutKey());
+
+        return $this;
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Events;
 
 use Illuminate\Contracts\Support\Arrayable;
@@ -55,7 +57,7 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
      *
      * @return \ArtisanSdk\RateLimiter\Events\Event
      */
-    public function fill(array $payload = []): Event
+    public function fill(array $payload = []): self
     {
         foreach ($payload as $key => $value) {
             $this->payload[$key] = $value;
@@ -77,9 +79,9 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
     /**
      * Convert the event into something JSON serializable.
      *
-     * @return array
+     * @return mixed
      */
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return $this->toArray();
     }

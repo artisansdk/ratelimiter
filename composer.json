@@ -1,12 +1,12 @@
 {
     "name": "artisansdk/ratelimiter",
-    "description": "A leaky bucket rate limiter and middleware controls for route-level granularity.",
+    "description": "A leaky bucket rate limiter and corresponding middleware with route-level granularity compatible with Laravel.",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
             "name": "Daniel LaBarge",
-            "email": "daniel@artisanscollaborative.com"
+            "email": "daniel@artisanmade.io"
         }
     ],
     "config": {
@@ -16,12 +16,12 @@
     },
     "require": {
         "php": ">=7.0|>=8.0",
-        "illuminate/contracts": "~5.0 | ~6.0 | ~7.0 | ~8.0| ~9.0",
-        "nesbot/carbon": "~1.0 | ~2.0",
+        "illuminate/contracts": "~5.0|~6.0|~7.0|~8.0|~9.0",
+        "nesbot/carbon": "~1.0|~2.0",
         "symfony/http-kernel": "~2.6|~3.3|~4.0|~5.0|~6.0"
     },
     "require-dev": {
-        "artisansdk/bench": "~1.0.0-rc1"
+        "artisansdk/bench": "~1.0.0-rc2"
     },
     "autoload": {
         "psr-4": {
@@ -34,15 +34,8 @@
         }
     },
     "scripts": {
-        "fix": "@php vendor/bin/bench fix src/ tests/ --cache=\".php_cs.cache\" --ansi",
-        "test": "@php vendor/bin/bench test src/ tests/ --cache=\".php_cs.cache\" --no-coverage --ansi",
-        "report": [
-            "[ -d reports ] || mkdir reports",
-            "@composer test",
-            "vendor/bin/phpmd \"src/\" html codesize,cleancode,unusedcode,naming --reportfile reports/messes.html --ignore-violations-on-exit",
-            "vendor/bin/pdepend --summary-xml=reports/stats.xml \"src/\"",
-            "vendor/bin/phploc --log-xml=reports/summary.xml src/",
-            "vendor/bin/phpcpd src/ --log-pmd=reports/duplications.xml --min-lines=3 --min-tokens=35"
-        ]
+        "fix": "@php vendor/bin/bench fix src/ tests/ --cache=\".php-cs-fixer.cache\" --ansi",
+        "test": "@php vendor/bin/bench test src/ tests/ --cache=\".php-cs-fixer.cache\" --no-coverage --ansi",
+        "report": "@php vendor/bin/bench report src/ reports/ --min-lines=3 --min-tokens=35 --ansi"
     }
 }

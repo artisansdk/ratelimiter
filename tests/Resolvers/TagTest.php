@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Resolvers;
 
 use ArtisanSdk\RateLimiter\Resolvers\Tag as Resolver;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Resolvers;
 
 use ArtisanSdk\RateLimiter\Resolvers\Route as Resolver;
@@ -87,7 +89,8 @@ class RouteTest extends TestCase
         $request->setRouteResolver(function () {
             $route = new Route();
             $route->name = null;
-            $route->action = function () {};
+            $route->action = function () {
+            };
 
             return $route;
         });

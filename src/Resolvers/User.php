@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Resolvers;
 
 use ArtisanSdk\RateLimiter\Contracts\Resolver;
@@ -115,11 +117,11 @@ class User implements Resolver
      */
     protected function parse($parameter)
     {
-        if (false !== stripos($parameter, '|')) {
+        if (is_string($parameter) && false !== stripos($parameter, '|')) {
             $parameter = explode('|', $parameter, 2)[$this->resolveUser() ? 1 : 0];
         }
 
-        if ( ! is_numeric($parameter) && $this->resolveUser()) {
+        if (! is_numeric($parameter) && $this->resolveUser()) {
             return $this->resolveUser()->{$parameter};
         }
 

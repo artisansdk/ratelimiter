@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Contracts;
 
 use Illuminate\Contracts\Support\Arrayable;
@@ -57,7 +59,7 @@ interface Bucket extends Arrayable, Jsonable, JsonSerializable
      *
      * @return \ArtisanSdk\RateLimiter\Contracts\Bucket
      */
-    public function reset(): Bucket;
+    public function reset(): self;
 
     /**
      * Configure the setting for the bucket.

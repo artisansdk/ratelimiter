@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests\Stubs;
 
 use Illuminate\Contracts\Events\Dispatcher as Contract;

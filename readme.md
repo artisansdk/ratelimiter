@@ -4,20 +4,37 @@ A leaky bucket rate limiter and corresponding middleware with route-level granul
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Usage Guide](#usage-guide)
+- [Rate Limiter](#rate-limiter)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage Guide](#usage-guide)
     - [Overview of the Laravel Rate Limiter](#overview-of-the-laravel-rate-limiter)
+      - [Laravel's Implementation](#laravels-implementation)
+      - [Problem 1: Bursting Exploit](#problem-1-bursting-exploit)
+      - [Problem 2: No Granularity](#problem-2-no-granularity)
+      - [Problem 3: Not Extensible](#problem-3-not-extensible)
     - [Understanding the Leaky Bucket Algorithm](#understanding-the-leaky-bucket-algorithm)
+      - [Leaky Bucket Implementation](#leaky-bucket-implementation)
+      - [Solution 1: Bursting Limit](#solution-1-bursting-limit)
+      - [Solution 2: Route-Level Granularity](#solution-2-route-level-granularity)
+      - [Solution 3: Extensible Key Resolvers](#solution-3-extensible-key-resolvers)
+      - [Bonus: Overflow Penalties](#bonus-overflow-penalties)
     - [Different Rates for Guests vs. Authenticated Users](#different-rates-for-guests-vs-authenticated-users)
     - [Different Rates for Different Users](#different-rates-for-different-users)
     - [Handling the Rate Limit Exceptions](#handling-the-rate-limit-exceptions)
     - [Setting a Custom Cache for the Rate Limiter](#setting-a-custom-cache-for-the-rate-limiter)
     - [How Request Signature Resolvers Work](#how-request-signature-resolvers-work)
     - [How Multiple Buckets Work](#how-multiple-buckets-work)
+      - [Using the Built In Resolvers](#using-the-built-in-resolvers)
+      - [Creating Custom Resolvers](#creating-custom-resolvers)
+      - [Setting a Custom Resolver as the Default](#setting-a-custom-resolver-as-the-default)
     - [Using the Rate Limiter by Itself](#using-the-rate-limiter-by-itself)
+      - [Creating a Custom Rate Limiter](#creating-a-custom-rate-limiter)
     - [Using the Bucket by Itself](#using-the-bucket-by-itself)
-- [Running the Tests](#running-the-tests)
-- [Licensing](#licensing)
+      - [Using the Evented Bucket](#using-the-evented-bucket)
+      - [Logging the Drips in the Bucket](#logging-the-drips-in-the-bucket)
+  - [Running the Tests](#running-the-tests)
+  - [Licensing](#licensing)
 
 ## Installation
 
@@ -658,7 +675,7 @@ $bucket = new Leaky('foo', 1, 0.016667); // bucket that overflows at more than 1
 
 $bucket = (new Leaky('foo'))     // instantiate the same bucket as above
     ->max(100)                   // $bucket->max() would return 100
-    ->rate(3)                    // $bucket->rate() would return 10
+    ->rate(10)                    // $bucket->rate() would return 10
     ->drips(50)                  // $bucket->drips() would return 50
     ->timer(time() - 10)         // $bucket->timer() would get the time
     ->fill(10)                   // $bucket->remaining() would return 40
@@ -680,8 +697,8 @@ dispatching through a command bus, then you might need to log calls to the bucke
 as events the rest of your application can listen for.
 
 > **Note:** The `Evented` bucket is an extension of the `Leaky` bucket that only
-wraps the parent class with events. All the same builder logic and behavior is the
-same otherwise.
+> wraps the parent class with events. All the same builder logic and behavior is the
+> same otherwise.
 
 You can switch from the basic `Leaky` bucket to the `Evented` bucket by binding
 the interface to the concrete the `register()` method of your
@@ -740,7 +757,7 @@ See the `composer.json` for more details on their execution and reporting output
 
 ## Licensing
 
-Copyright (c) 2018-2021 [Artisans Collaborative](https://artisanscollaborative.com)
+Copyright (c) 2018-2022 [Artisan Made, Co.](http://artisanmade.io)
 
 This package is released under the MIT license. Please see the LICENSE file
 distributed with every copy of the code for commercial licensing terms.

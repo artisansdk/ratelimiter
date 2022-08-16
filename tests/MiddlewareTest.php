@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanSdk\RateLimiter\Tests;
 
 use ArtisanSdk\RateLimiter\Buckets\Leaky;
@@ -27,7 +29,9 @@ class MiddlewareTest extends TestCase
         $resolver = new Resolver();
         $middleware = new Middleware($limiter, $resolver);
         $request = Request::createFromGlobals();
-        $next = function ($request) { return new Response(); };
+        $next = function ($request) {
+            return new Response();
+        };
         $response = $middleware->handle($request, $next);
         $headers = $response->headers;
         $store = $cache->getStore();
@@ -60,7 +64,7 @@ class MiddlewareTest extends TestCase
         } catch (Exception $exception) {
         }
 
-        if ( ! $exception) {
+        if (! $exception) {
             $this->fail('An exception should have been thrown when the rate limit was exceeded.');
         }
 
@@ -81,7 +85,7 @@ class MiddlewareTest extends TestCase
         } catch (Exception $exception) {
         }
 
-        if ( ! $exception) {
+        if (! $exception) {
             $this->fail('An exception should have been thrown when the rate limit was exceeded the second time.');
         }
 
@@ -106,14 +110,16 @@ class MiddlewareTest extends TestCase
         $limiter = new Limiter($cache, new Leaky());
         $resolver = new stdClass();
         $middleware = new Middleware($limiter, $resolver);
-        $next = function ($request) { return new Response(); };
+        $next = function ($request) {
+            return new Response();
+        };
 
         try {
             $middleware->handle(Request::createFromGlobals(), $next);
         } catch (InvalidArgumentException $exception) {
         }
 
-        if ( ! $exception) {
+        if (! $exception) {
             $this->fail('An invalid resolver should throw an InvalidArgumentException.');
         }
 
