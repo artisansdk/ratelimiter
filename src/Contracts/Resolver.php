@@ -22,7 +22,7 @@ interface Resolver
     public function rate(): float;
 
     /**
-     * Get the duration in minutes the rate limiter will timeout.
+     * Get the duration in seconds the rate limiter will timeout.
      */
     public function duration(): int;
 }
