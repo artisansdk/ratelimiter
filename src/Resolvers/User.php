@@ -33,7 +33,7 @@ class User implements Resolver
     protected $rate;
 
     /**
-     * The duration in minutes the rate limiter will timeout.
+     * The duration in seconds the rate limiter will timeout.
      *
      * @var int|string
      */
@@ -101,7 +101,7 @@ class User implements Resolver
     }
 
     /**
-     * Get the duration in minutes the rate limiter will timeout.
+     * Get the duration in seconds the rate limiter will timeout.
      */
     public function duration(): int
     {
