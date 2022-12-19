@@ -70,7 +70,7 @@ class User implements Resolver
     public function key(): string
     {
         if ($user = $this->resolveUser()) {
-            return sha1($user->getAuthIdentifier());
+            return sha1((string) $user->getAuthIdentifier());
         }
 
         if ($route = $this->request->route()) {
