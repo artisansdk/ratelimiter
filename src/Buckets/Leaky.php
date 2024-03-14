@@ -10,6 +10,7 @@ use ArtisanSdk\RateLimiter\Traits\Fluency;
 /**
  * Leaky Bucket.
  */
+#[\AllowDynamicProperties]
 class Leaky implements Bucket
 {
     use Fluency;
@@ -56,9 +57,9 @@ class Leaky implements Bucket
      *          new Bucket('foo', 100, 10) max capacity of 100 leaking at 10 r/s
      *          new Bucket('foo', 100, 0.1) max capacity of 100 leaking at rate of 1 every 10 seconds
      *
-     * @param string    $key  for the bucket cache
-     * @param int       $max  capacity
-     * @param int|float $rate of leak per second
+     * @param  string  $key  for the bucket cache
+     * @param  int  $max  capacity
+     * @param  int|float  $rate  of leak per second
      */
     public function __construct(string $key = 'default', int $max = 60, $rate = 1)
     {
@@ -79,8 +80,7 @@ class Leaky implements Bucket
     /**
      * Get or set the timer for the bucket in UNIX seconds.
      *
-     * @param float $value
-     *
+     * @param  float  $value
      * @return float|\ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function timer($value = null)
@@ -91,11 +91,10 @@ class Leaky implements Bucket
     /**
      * Get or set the maximum capacity of the bucket.
      *
-     * @param int $value
      *
      * @return int|\ArtisanSdk\RateLimiter\Contracts\Bucket
      */
-    public function max(int $value = null)
+    public function max(?int $value = null)
     {
         return $this->property(__FUNCTION__, $value);
     }
@@ -103,8 +102,7 @@ class Leaky implements Bucket
     /**
      * Get or set the rate per second the bucket leaks.
      *
-     * @param int|float $value
-     *
+     * @param  int|float  $value
      * @return float|\ArtisanSdk\RateLimiter\Contracts\Bucket
      */
     public function rate($value = null)
@@ -159,7 +157,7 @@ class Leaky implements Bucket
     /**
      * Let the bucket leak at the rate per second.
      *
-     * @param int|float $rate
+     * @param  int|float  $rate
      */
     public function leak($rate = null): Bucket
     {
@@ -225,21 +223,19 @@ class Leaky implements Bucket
     public function toArray()
     {
         return [
-            'key'       => $this->key(),
-            'timer'     => $this->timer(),
-            'max'       => $this->max(),
-            'rate'      => $this->rate(),
-            'drips'     => $this->drips(),
+            'key' => $this->key(),
+            'timer' => $this->timer(),
+            'max' => $this->max(),
+            'rate' => $this->rate(),
+            'drips' => $this->drips(),
             'remaining' => $this->remaining(),
         ];
     }
 
     /**
      * Convert the bucket into something JSON serializable.
-     *
-     * @return mixed
      */
-    public function jsonSerialize() : mixed
+    public function jsonSerialize(): mixed
     {
         return $this->toArray();
     }
@@ -247,8 +243,7 @@ class Leaky implements Bucket
     /**
      * Convert the bucket to JSON.
      *
-     * @param int $options
-     *
+     * @param  int  $options
      * @return string
      */
     public function toJson($options = 0)

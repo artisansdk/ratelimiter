@@ -1,7 +1,7 @@
 !.env.example
 .bash_history
 .bashrc
-.cache/
+.cache
 .DS_Store
 .env*
 .gitconfig
@@ -13,14 +13,15 @@
 .viminfo
 *.sublime-project
 *.sublime-workspace
-/.composer/
+/.composer
 /.idea
+/.phpunit.cache
 /.ssh/
 /.vagrant
-/coverage/
+/coverage
 /reports
 /Vagrantfile
-/vendor/
+/vendor
 composer.lock
 composer.phar
 Homestead.json

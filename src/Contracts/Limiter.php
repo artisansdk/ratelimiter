@@ -9,10 +9,9 @@ interface Limiter
     /**
      * Configure the limiter.
      *
-     * @param string    $key  for the rate
-     * @param int       $max  hits against the limiter
-     * @param int|float $rate in which limiter decays or leaks
-     *
+     * @param  string  $key  for the rate
+     * @param  int  $max  hits against the limiter
+     * @param  int|float  $rate  in which limiter decays or leaks
      * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
     public function configure(string $key, int $max, $rate);
@@ -25,7 +24,7 @@ interface Limiter
     /**
      * Limit additional hits for the duration in seconds.
      *
-     * @param int $duration in seconds for the limit to take effect
+     * @param  int  $duration  in seconds for the limit to take effect
      */
     public function timeout(int $duration = 1): void;
 

@@ -49,10 +49,10 @@ class User implements Resolver
     /**
      * Setup the resolver.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int|string               $max
-     * @param int|float|string         $rate
-     * @param int|string               $duration
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int|string  $max
+     * @param  int|float|string  $rate
+     * @param  int|string  $duration
      */
     public function __construct(Request $request, $max = null, $rate = null, $duration = null)
     {
@@ -111,13 +111,12 @@ class User implements Resolver
     /**
      * Parse the parameter value if the user is authenticated or not.
      *
-     * @param int|string $parameter
-     *
+     * @param  int|string  $parameter
      * @return int|float
      */
     protected function parse($parameter)
     {
-        if (is_string($parameter) && false !== stripos($parameter, '|')) {
+        if (is_string($parameter) && stripos($parameter, '|') !== false) {
             $parameter = explode('|', $parameter, 2)[$this->resolveUser() ? 1 : 0];
         }
 

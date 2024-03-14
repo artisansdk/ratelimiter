@@ -18,8 +18,8 @@ class Dispatcher implements Contract
     /**
      * Register an event listener with the dispatcher.
      *
-     * @param string|array $events
-     * @param mixed|null   $listener
+     * @param  string|array  $events
+     * @param  mixed|null  $listener
      */
     public function listen($events, $listener = null)
     {
@@ -28,8 +28,7 @@ class Dispatcher implements Contract
     /**
      * Determine if a given event has listeners.
      *
-     * @param string $eventName
-     *
+     * @param  string  $eventName
      * @return bool
      */
     public function hasListeners($eventName)
@@ -39,7 +38,7 @@ class Dispatcher implements Contract
     /**
      * Register an event subscriber with the dispatcher.
      *
-     * @param object|string $subscriber
+     * @param  object|string  $subscriber
      */
     public function subscribe($subscriber)
     {
@@ -48,9 +47,8 @@ class Dispatcher implements Contract
     /**
      * Dispatch an event until the first non-null response is returned.
      *
-     * @param string|object $event
-     * @param mixed         $payload
-     *
+     * @param  string|object  $event
+     * @param  mixed  $payload
      * @return array|null
      */
     public function until($event, $payload = [])
@@ -61,10 +59,9 @@ class Dispatcher implements Contract
     /**
      * Dispatch an event and call the listeners.
      *
-     * @param string|object $event
-     * @param mixed         $payload
-     * @param bool          $halt
-     *
+     * @param  string|object  $event
+     * @param  mixed  $payload
+     * @param  bool  $halt
      * @return array|null
      */
     public function dispatch($event, $payload = [], $halt = false)
@@ -77,8 +74,8 @@ class Dispatcher implements Contract
     /**
      * Register an event and payload to be fired later.
      *
-     * @param string $event
-     * @param array  $payload
+     * @param  string  $event
+     * @param  array  $payload
      */
     public function push($event, $payload = [])
     {
@@ -87,7 +84,7 @@ class Dispatcher implements Contract
     /**
      * Flush a set of pushed events.
      *
-     * @param string $event
+     * @param  string  $event
      */
     public function flush($event)
     {
@@ -96,7 +93,7 @@ class Dispatcher implements Contract
     /**
      * Remove a set of listeners from the dispatcher.
      *
-     * @param string $event
+     * @param  string  $event
      */
     public function forget($event)
     {

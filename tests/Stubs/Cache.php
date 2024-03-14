@@ -24,11 +24,9 @@ class Cache implements Repository
     /**
      * Determine if an item exists in the cache.
      *
-     * @param string $key
-     *
-     * @return bool
+     * @param  string  $key
      */
-    public function has($key) : bool
+    public function has($key): bool
     {
         return ! is_null($this->get($key));
     }
@@ -37,10 +35,8 @@ class Cache implements Repository
      * Determine if an item doesn't exist in the cache.
      *
      * @param  string  $key
-     *
-     * @return bool
      */
-    public function missing($key) : bool
+    public function missing($key): bool
     {
         return ! $this->has($key);
     }
@@ -48,12 +44,10 @@ class Cache implements Repository
     /**
      * Retrieve an item from the cache by key.
      *
-     * @param string|array $key
-     * @param mixed  $default
-     *
-     * @return mixed
+     * @param  string|array  $key
+     * @param  mixed  $default
      */
-    public function get($key, $default = null) : mixed
+    public function get($key, $default = null): mixed
     {
         if (is_array($key)) {
             return $this->many($key);
@@ -66,12 +60,8 @@ class Cache implements Repository
      * Retrieve multiple items from the cache by key.
      *
      * Items not found in the cache will have a null value.
-     *
-     * @param  array  $keys
-     *
-     * @return array
      */
-    public function many(array $keys) : array
+    public function many(array $keys): array
     {
         return collect($keys)
             ->mapWithKeys(function ($key) {
@@ -83,9 +73,8 @@ class Cache implements Repository
     /**
      * Retrieve an item from the cache and delete it.
      *
-     * @param string $key
-     * @param mixed  $default
-     *
+     * @param  string  $key
+     * @param  mixed  $default
      * @return mixed
      */
     public function pull($key, $default = null)
@@ -101,7 +90,6 @@ class Cache implements Repository
      * @param  array|string  $key
      * @param  mixed  $value
      * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
-     *
      * @return bool
      */
     public function put($key, $value, $ttl = null)
@@ -130,7 +118,6 @@ class Cache implements Repository
      *
      * @param  string  $key
      * @param  mixed  $value
-     *
      * @return bool
      */
     public function forever($key, $value)
@@ -141,9 +128,7 @@ class Cache implements Repository
     /**
      * Store multiple items in the cache for a given number of seconds.
      *
-     * @param  array  $values
      * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
-     *
      * @return bool
      */
     public function putMany(array $values, $ttl = null)
@@ -164,10 +149,9 @@ class Cache implements Repository
     /**
      * Store an item in the cache if the key does not exist.
      *
-     * @param  string                                     $key
-     * @param  mixed                                      $value
+     * @param  string  $key
+     * @param  mixed  $value
      * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
-     *
      * @return bool
      */
     public function add($key, $value, $ttl = null)
@@ -193,9 +177,8 @@ class Cache implements Repository
     /**
      * Increment the value of an item in the cache.
      *
-     * @param string $key
-     * @param mixed  $value
-     *
+     * @param  string  $key
+     * @param  mixed  $value
      * @return int|bool
      */
     public function increment($key, $value = 1)
@@ -209,9 +192,8 @@ class Cache implements Repository
     /**
      * Decrement the value of an item in the cache.
      *
-     * @param string $key
-     * @param mixed  $value
-     *
+     * @param  string  $key
+     * @param  mixed  $value
      * @return int|bool
      */
     public function decrement($key, $value = 1)
@@ -224,8 +206,6 @@ class Cache implements Repository
      *
      * @param  string  $key
      * @param  \Closure|\DateTimeInterface|\DateInterval|int|null  $ttl
-     * @param  \Closure  $callback
-     *
      * @return mixed
      */
     public function remember($key, $ttl, Closure $callback)
@@ -248,8 +228,6 @@ class Cache implements Repository
      * Get an item from the cache, or execute the given Closure and store the result forever.
      *
      * @param  string  $key
-     * @param  \Closure  $callback
-     *
      * @return mixed
      */
     public function sear($key, Closure $callback)
@@ -261,8 +239,6 @@ class Cache implements Repository
      * Get an item from the cache, or execute the given Closure and store the result forever.
      *
      * @param  string  $key
-     * @param  \Closure  $callback
-     *
      * @return mixed
      */
     public function rememberForever($key, Closure $callback)
@@ -282,11 +258,9 @@ class Cache implements Repository
     }
 
     /**
-     * @inheritdoc
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null) : bool
+    public function set($key, $value, $ttl = null): bool
     {
         $this->storage[$key] = $value;
 
@@ -296,8 +270,7 @@ class Cache implements Repository
     /**
      * Remove an item from the cache.
      *
-     * @param string $key
-     *
+     * @param  string  $key
      * @return bool
      */
     public function forget($key)
@@ -306,11 +279,9 @@ class Cache implements Repository
     }
 
     /**
-     * @inheritdoc
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function delete($key) : bool
+    public function delete($key): bool
     {
         unset($this->storage[$key]);
 
@@ -322,7 +293,7 @@ class Cache implements Repository
      *
      * @return bool true on success and false on failure
      */
-    public function clear() : bool
+    public function clear(): bool
     {
         $this->storage = [];
 
@@ -330,11 +301,9 @@ class Cache implements Repository
     }
 
     /**
-     * @inheritdoc
-     *
-     * @return iterable
+     * {@inheritdoc}
      */
-    public function getMultiple($keys, $default = null) : iterable
+    public function getMultiple($keys, $default = null): iterable
     {
         $values = [];
 
@@ -346,11 +315,9 @@ class Cache implements Repository
     }
 
     /**
-     * @inheritdoc
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function setMultiple($values, $ttl = null) : bool
+    public function setMultiple($values, $ttl = null): bool
     {
         foreach ($values as $key => $value) {
             if (! $this->set($key, $value, $ttl)) {
@@ -362,11 +329,9 @@ class Cache implements Repository
     }
 
     /**
-     * @inheritdoc
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function deleteMultiple($keys) : bool
+    public function deleteMultiple($keys): bool
     {
         foreach ($keys as $key) {
             if (! $this->delete($key)) {

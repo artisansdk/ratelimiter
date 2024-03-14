@@ -9,8 +9,8 @@ class Leaking extends Event
     /**
      * The bucket is leaking drips at a rate.
      *
-     * @param string $key  of the bucket
-     * @param float  $rate of leak in drips per second
+     * @param  string  $key  of the bucket
+     * @param  float  $rate  of leak in drips per second
      */
     public function __construct(string $key, float $rate)
     {

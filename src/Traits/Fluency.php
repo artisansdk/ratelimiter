@@ -12,9 +12,8 @@ trait Fluency
      * @example property('foo') ==> true
      *          property('foo', true) ==> self
      *
-     * @param string $property
-     * @param mixed  $value
-     *
+     * @param  string  $property
+     * @param  mixed  $value
      * @return mixed|self
      */
     protected function property($property, $value = null)

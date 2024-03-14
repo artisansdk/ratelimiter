@@ -20,7 +20,7 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
     /**
      * Populate the payload of the event.
      *
-     * @param string $key of the bucket
+     * @param  string  $key  of the bucket
      */
     public function __construct(string $key, array $payload = [])
     {
@@ -31,8 +31,7 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
     /**
      * Get the payload key.
      *
-     * @param string $key
-     *
+     * @param  string  $key
      * @return mixed|null
      */
     public function __get($key)
@@ -43,8 +42,7 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
     /**
      * Determine if the payload key is set.
      *
-     * @param string $key
-     *
+     * @param  string  $key
      * @return bool
      */
     public function __isset($key)
@@ -54,8 +52,6 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
 
     /**
      * Fill the event with the payload.
-     *
-     * @return \ArtisanSdk\RateLimiter\Events\Event
      */
     public function fill(array $payload = []): self
     {
@@ -78,10 +74,8 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
 
     /**
      * Convert the event into something JSON serializable.
-     *
-     * @return mixed
      */
-    public function jsonSerialize() : mixed
+    public function jsonSerialize(): mixed
     {
         return $this->toArray();
     }
@@ -89,8 +83,7 @@ abstract class Event implements Arrayable, Jsonable, JsonSerializable
     /**
      * Convert the event to JSON.
      *
-     * @param int $options
-     *
+     * @param  int  $options
      * @return string
      */
     public function toJson($options = 0)

@@ -41,8 +41,8 @@ class LeakyTest extends TestCase
     {
         $settings = [
             'timer' => 1234567890.123,
-            'max'   => 10,
-            'rate'  => 0.5,
+            'max' => 10,
+            'rate' => 0.5,
             'drips' => 8,
         ];
 

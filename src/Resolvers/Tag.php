@@ -18,10 +18,10 @@ class Tag extends User
     /**
      * Setup the resolver.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int|string               $max
-     * @param int|float|string         $rate
-     * @param int|string               $duration
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int|string  $max
+     * @param  int|float|string  $rate
+     * @param  int|string  $duration
      */
     public function __construct(Request $request, string $tag, $max = null, $rate = null, $duration = null)
     {

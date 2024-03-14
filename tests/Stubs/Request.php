@@ -19,8 +19,7 @@ class Request extends HttpRequest
     /**
      * Get the user making the request.
      *
-     * @param string $identifier
-     *
+     * @param  string  $identifier
      * @return mixed
      */
     public function user($identifier = null)
@@ -31,9 +30,8 @@ class Request extends HttpRequest
     /**
      * Get the route handling the request.
      *
-     * @param string|null $param
-     * @param mixed       $default
-     *
+     * @param  string|null  $param
+     * @param  mixed  $default
      * @return \Illuminate\Routing\Route|object|string
      */
     public function route($param = null, $default = null)

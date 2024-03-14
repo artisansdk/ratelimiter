@@ -24,7 +24,7 @@ class Evented extends Leaky
     protected $events;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __construct(Dispatcher $events, string $key = 'default', int $max = 60, $rate = 1)
     {
@@ -34,7 +34,7 @@ class Evented extends Leaky
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function leak($rate = null): Bucket
     {
@@ -59,7 +59,7 @@ class Evented extends Leaky
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function fill(int $drips = 1): Bucket
     {
@@ -84,8 +84,7 @@ class Evented extends Leaky
     /**
      * Dispatch an event until the first non-null response is returned.
      *
-     * @param string|object $event
-     *
+     * @param  string|object  $event
      * @return array|null
      */
     protected function until($event)
@@ -96,8 +95,7 @@ class Evented extends Leaky
     /**
      * Dispatch an event and call the listeners.
      *
-     * @param string|object $event
-     *
+     * @param  string|object  $event
      * @return array|null
      */
     protected function fire($event)

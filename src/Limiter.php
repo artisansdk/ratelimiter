@@ -39,17 +39,15 @@ class Limiter implements Contract
 
     /**
      * Create a new rate limiter instance.
-     *
-     * @param \Illuminate\Contracts\Events\Dispatcher $events
      */
-    public function __construct(Cache $cache, Bucket $bucket, Dispatcher $events = null)
+    public function __construct(Cache $cache, Bucket $bucket, ?Dispatcher $events = null)
     {
         $this->cache = $cache;
         $this->events = $events;
 
         $key = $bucket->key();
-        if (false !== stripos($key, ':')) {
-            list($parent, $route) = explode(':', $key, 2);
+        if (stripos($key, ':') !== false) {
+            [$parent, $route] = explode(':', $key, 2);
             $parent = $bucket instanceof Evented
                 ? (new $bucket($this->events, $parent, $bucket->max(), $bucket->rate()))
                 : (new $bucket($parent, $bucket->max(), $bucket->rate()));
@@ -67,10 +65,9 @@ class Limiter implements Contract
     /**
      * Configure the limiter.
      *
-     * @param string    $key  for the rate
-     * @param int       $max  hits against the limiter
-     * @param int|float $rate in which limiter decays or leaks per second
-     *
+     * @param  string  $key  for the rate
+     * @param  int  $max  hits against the limiter
+     * @param  int|float  $rate  in which limiter decays or leaks per second
      * @return \ArtisanSdk\RateLimiter\Contracts\Limiter
      */
     public function configure(string $key, int $max, $rate)
@@ -139,7 +136,7 @@ class Limiter implements Contract
     /**
      * Limit additional hits for the duration in seconds.
      *
-     * @param int $duration in seconds for the limit to take effect
+     * @param  int  $duration  in seconds for the limit to take effect
      */
     public function timeout(int $duration = 60): void
     {
@@ -229,10 +226,8 @@ class Limiter implements Contract
 
     /**
      * Get the timeout key.
-     *
-     * @param string $key
      */
-    protected function getTimeoutKey(string $key = null): string
+    protected function getTimeoutKey(?string $key = null): string
     {
         $key = $key ?? $this->lastBucket()->key();
 

@@ -6,6 +6,7 @@ namespace ArtisanSdk\RateLimiter\Tests\Stubs;
 
 use ArtisanSdk\RateLimiter\Traits\Fluency as Concern;
 
+#[\AllowDynamicProperties]
 class Fluency
 {
     use Concern;

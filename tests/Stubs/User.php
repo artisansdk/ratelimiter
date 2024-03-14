@@ -12,6 +12,8 @@ class User
 
     public $duration = 60;
 
+    protected $identifier;
+
     public function __construct($identifier)
     {
         $this->identifier = $identifier;
