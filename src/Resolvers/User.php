@@ -33,7 +33,7 @@ class User implements Resolver
     protected $rate;
 
     /**
-     * The duration in minutes the rate limiter will timeout.
+     * The duration in seconds the rate limiter will timeout.
      *
      * @var int|string
      */
@@ -70,7 +70,7 @@ class User implements Resolver
     public function key(): string
     {
         if ($user = $this->resolveUser()) {
-            return sha1($user->getAuthIdentifier());
+            return sha1((string) $user->getAuthIdentifier());
         }
 
         if ($route = $this->request->route()) {
@@ -101,7 +101,7 @@ class User implements Resolver
     }
 
     /**
-     * Get the duration in minutes the rate limiter will timeout.
+     * Get the duration in seconds the rate limiter will timeout.
      */
     public function duration(): int
     {

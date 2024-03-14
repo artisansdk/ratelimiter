@@ -161,7 +161,7 @@ class Limiter implements Contract
             $this->cache->put(
                 $bucket->key(),
                 $bucket->toArray(),
-                max(1, $bucket->duration()) // $ttl to $seconds conversion requires minimally 1s
+                (int) max(1, ceil($bucket->duration())) // $ttl to $seconds conversion requires minimally 1s
             );
         }
 
