@@ -38,7 +38,7 @@ class Request extends HttpRequest
     {
         return $this->routeResolver
                 ? call_user_func($this->routeResolver)
-                : new Route();
+                : new Route;
     }
 
     /**

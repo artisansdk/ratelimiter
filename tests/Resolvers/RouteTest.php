@@ -15,9 +15,9 @@ class RouteTest extends TestCase
     /**
      * Test that the default route resolver can be constructed.
      */
-    public function testConstruct()
+    public function test_construct()
     {
-        $route = new Route();
+        $route = new Route;
         $request = Request::createFromGlobals();
         $resolver = new Resolver($request);
         $this->assertStringStartsWith(sha1($route->getDomain().'|'.$request->ip()), $resolver->key(), 'The parent key should be unique to the domain and IP address.');
@@ -42,7 +42,7 @@ class RouteTest extends TestCase
     /**
      * Test that the default configuration for the resolver can be customized.
      */
-    public function testConfiguration()
+    public function test_configuration()
     {
         $resolver = new Resolver(Request::createFromGlobals(), 30, 0.1, 300);
         $this->assertSame(30, $resolver->max(), 'The customized max should be int(30).');
@@ -53,12 +53,12 @@ class RouteTest extends TestCase
     /**
      * Test that the resolver falls back to controller action.
      */
-    public function testAction()
+    public function test_action()
     {
-        $route = new Route();
+        $route = new Route;
         $request = Request::createFromGlobals();
         $request->setRouteResolver(function () {
-            $route = new Route();
+            $route = new Route;
             $route->name = false;
 
             return $route;
@@ -71,12 +71,12 @@ class RouteTest extends TestCase
     /**
      * Test that the resolver falls back to URI.
      */
-    public function testUri()
+    public function test_uri()
     {
-        $route = new Route();
+        $route = new Route;
         $request = Request::createFromGlobals();
         $request->setRouteResolver(function () {
-            $route = new Route();
+            $route = new Route;
             $route->name = null;
             $route->action = null;
 
@@ -87,10 +87,9 @@ class RouteTest extends TestCase
         $this->assertStringEndsWith(':'.sha1($route->uri()), $resolver->key(), 'The sub key should be same as the route URI.');
 
         $request->setRouteResolver(function () {
-            $route = new Route();
+            $route = new Route;
             $route->name = null;
-            $route->action = function () {
-            };
+            $route->action = function () {};
 
             return $route;
         });

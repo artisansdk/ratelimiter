@@ -15,7 +15,7 @@ class EventTest extends TestCase
     /**
      * Test that the event implements the abstract.
      */
-    public function testImplements()
+    public function test_implements()
     {
         $event = new Leaked('foo', 10, 50);
 
@@ -28,7 +28,7 @@ class EventTest extends TestCase
     /**
      * Test the event's magic methods.
      */
-    public function testMagic()
+    public function test_magic()
     {
         $event = new Leaked('foo', 10, 50);
         $this->assertTrue(isset($event->key), 'The __isset() method should return true for keys set in the payload.');
@@ -41,7 +41,7 @@ class EventTest extends TestCase
     /**
      * Test that the event can be converted to JSON.
      */
-    public function testToJson()
+    public function test_to_json()
     {
         $event = new Leaked('foo', 10, 50);
 

@@ -21,9 +21,9 @@ class EventedTest extends TestCase
     /**
      * Test that the bucket, when constructed, is reset.
      */
-    public function testConstruct()
+    public function test_construct()
     {
-        $dispatcher = new Dispatcher();
+        $dispatcher = new Dispatcher;
 
         $bucket = new Evented($dispatcher, 'default', 60, 1);
         $this->assertSame('default', $bucket->key(), 'The default key for the bucket should be default.');
@@ -47,9 +47,9 @@ class EventedTest extends TestCase
     /**
      * Test that the bucket emits events when leaking.
      */
-    public function testLeak()
+    public function test_leak()
     {
-        $dispatcher = new Dispatcher();
+        $dispatcher = new Dispatcher;
         $bucket = new Evented($dispatcher, 'default', 60, 1);
         $bucket->leak();
         $events = $dispatcher->getEvents();
@@ -78,9 +78,9 @@ class EventedTest extends TestCase
     /**
      * Test that the bucket emits events when filling.
      */
-    public function testFill()
+    public function test_fill()
     {
-        $dispatcher = new Dispatcher();
+        $dispatcher = new Dispatcher;
         $bucket = new Evented($dispatcher, 'default', 60, 1);
         $bucket->fill(10);
         $events = $dispatcher->getEvents();

@@ -12,7 +12,7 @@ class ExceptionTest extends TestCase
     /**
      * Test that a too many requests exception can be constructed.
      */
-    public function testConstruct()
+    public function test_construct()
     {
         $exception = new Exception(
             'Too Many Requests',

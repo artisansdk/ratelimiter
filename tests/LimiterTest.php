@@ -16,9 +16,9 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter constructs the bucket and persists it to cache.
      */
-    public function testPersistence()
+    public function test_persistence()
     {
-        $cache = new Cache();
+        $cache = new Cache;
         $original = new Limiter($cache, new Leaky('original'));
         $this->assertSame(0, $original->hits(), 'A new bucket limiter should not have any hits when constructed.');
         $this->assertSame(60, $original->remaining(), 'A new bucket limiter should have full remaining capacity when constructed.');
@@ -39,9 +39,9 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter can be configured.
      */
-    public function testConfigure()
+    public function test_configure()
     {
-        $cache = new Cache();
+        $cache = new Cache;
         $original = new Leaky('original');
         $limiter = new Limiter($cache, $original);
         $limiter->hit();
@@ -64,9 +64,9 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter can be exceeded.
      */
-    public function testExceeded()
+    public function test_exceeded()
     {
-        $cache = new Cache();
+        $cache = new Cache;
         $limiter = new Limiter($cache, new Leaky('default', 2, 1));
 
         $limiter->hit();
@@ -84,9 +84,9 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter timeout is set only once until expired.
      */
-    public function testTimeout()
+    public function test_timeout()
     {
-        $cache = new Cache();
+        $cache = new Cache;
         $time = Carbon::now();
         $bucket = (new Leaky('foo'))->timer($time->getTimestamp());
         $limiter = new Limiter($cache, $bucket);
@@ -103,9 +103,9 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter resets the bucket and timeout when cleared.
      */
-    public function testClear()
+    public function test_clear()
     {
-        $cache = new Cache();
+        $cache = new Cache;
         $bucket = new Leaky('foo');
         (new Limiter($cache, new Leaky('bar')))->hit();
         $limiter = new Limiter($cache, $bucket);
@@ -132,9 +132,9 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter can handle multiple buckets.
      */
-    public function testMultipleBuckets()
+    public function test_multiple_buckets()
     {
-        $cache = new Cache();
+        $cache = new Cache;
         $bucket = new Leaky('foo:bar:baz'); // we provide 3 keys to ensure only 2 are used
         $limiter = new Limiter($cache, $bucket);
         $limiter->hit();
@@ -189,10 +189,10 @@ class LimiterTest extends TestCase
     /**
      * Test that the rate limiter passes the dispatcher to the evented buckets.
      */
-    public function testDispatcher()
+    public function test_dispatcher()
     {
-        $cache = new Cache();
-        $dispatcher = new Dispatcher();
+        $cache = new Cache;
+        $dispatcher = new Dispatcher;
         $bucket = new Evented($dispatcher, 'foo:bar', 60, 1);
 
         $limiter = new Limiter($cache, $bucket, $dispatcher);

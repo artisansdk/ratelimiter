@@ -13,9 +13,9 @@ class LeakyTest extends TestCase
     /**
      * Test that the bucket, when constructed, is reset.
      */
-    public function testConstruct()
+    public function test_construct()
     {
-        $bucket = new Leaky();
+        $bucket = new Leaky;
         $this->assertSame('default', $bucket->key(), 'The default key for the bucket should be default.');
         $this->assertSame(60, $bucket->max(), 'The default max for the bucket should be 60.');
         $this->assertSame(1.0, $bucket->rate(), 'The default rate for the bucket should be 1 drip per second.');
@@ -37,7 +37,7 @@ class LeakyTest extends TestCase
     /**
      * Test that the bucket can be configured after creation.
      */
-    public function testConfigure()
+    public function test_configure()
     {
         $settings = [
             'timer' => 1234567890.123,
@@ -46,7 +46,7 @@ class LeakyTest extends TestCase
             'drips' => 8,
         ];
 
-        $bucket = (new Leaky())
+        $bucket = (new Leaky)
             ->configure($settings);
 
         $this->assertSame(
@@ -64,9 +64,9 @@ class LeakyTest extends TestCase
     /**
      * Test that the bucket can be converted to JSON.
      */
-    public function testToJson()
+    public function test_to_json()
     {
-        $bucket = (new Leaky())
+        $bucket = (new Leaky)
             ->timer($time = time());
 
         $this->assertJson(
@@ -79,10 +79,10 @@ class LeakyTest extends TestCase
     /**
      * Test that the bucket can leak.
      */
-    public function testLeak()
+    public function test_leak()
     {
         $time = (float) Carbon::now()->subSeconds(5)->getTimestamp();
-        $bucket = (new Leaky())
+        $bucket = (new Leaky)
             ->timer($time)
             ->fill(10);
 
@@ -100,7 +100,7 @@ class LeakyTest extends TestCase
     /**
      * Test that the bucket's capacity can be checked.
      */
-    public function testCapacity()
+    public function test_capacity()
     {
         $bucket = new Leaky('foo', 10);
 
@@ -120,7 +120,7 @@ class LeakyTest extends TestCase
     /**
      * Test that the bucket's drain time can be calculated.
      */
-    public function testDuration()
+    public function test_duration()
     {
         $time = microtime(true) - 10;
         $bucket = new Leaky('foo', 50, 0.1);

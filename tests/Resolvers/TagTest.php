@@ -15,9 +15,9 @@ class TagTest extends TestCase
     /**
      * Test that the default tag resolver can be constructed.
      */
-    public function testConstruct()
+    public function test_construct()
     {
-        $route = new Route();
+        $route = new Route;
         $request = Request::createFromGlobals();
         $resolver = new Resolver($request, 'foo');
         $this->assertSame('foo', $resolver->tag(), 'The tag should be the same as what was passed to the constructor.');
@@ -43,7 +43,7 @@ class TagTest extends TestCase
     /**
      * Test that the default configuration for the resolver can be customized.
      */
-    public function testConfiguration()
+    public function test_configuration()
     {
         $resolver = new Resolver(Request::createFromGlobals(), 'foo', 30, 0.1, 300);
         $this->assertSame(30, $resolver->max(), 'The customized max should be int(30).');

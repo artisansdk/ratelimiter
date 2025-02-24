@@ -12,9 +12,9 @@ class FluencyTest extends TestCase
     /**
      * Test that a fluent property can be set.
      */
-    public function testSet()
+    public function test_set()
     {
-        $stub = new Fluency();
+        $stub = new Fluency;
         $stub->fooString('bar');
         $stub->fooArray(['bar']);
 
@@ -25,9 +25,9 @@ class FluencyTest extends TestCase
     /**
      * Test that a fluent property can be gotten.
      */
-    public function testGet()
+    public function test_get()
     {
-        $stub = new Fluency();
+        $stub = new Fluency;
 
         $this->assertSame('foo', $stub->barString(), 'Calling property() without a second argument should return the string value under the named property based on the first argument.');
         $this->assertSame(['foo'], $stub->barArray(), 'Calling property() without a second argument should return the array value under the named property based on the first argument.');
@@ -36,9 +36,9 @@ class FluencyTest extends TestCase
     /**
      * Test that a fluent property call can be chained.
      */
-    public function testChaining()
+    public function test_chaining()
     {
-        $stub = new Fluency();
+        $stub = new Fluency;
         $this->assertSame($stub, $stub->fooString('foo'), 'Calling property() with multiple arguments should be fluent, allowing for chaining: return the class itself after setting a value.');
         $this->assertSame($stub, $stub->fooString('foo')->barString('bar'), 'Calling property() with multiple arguments should be fluent, allowing for chaining: return the class itself after setting a value.');
         $this->assertSame('bar', $stub->fooString('foo')->barString(), 'Calling property() without multiple arguments should return the value: do not chain after returning a value.');

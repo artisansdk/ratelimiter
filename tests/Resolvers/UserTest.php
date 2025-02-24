@@ -15,7 +15,7 @@ class UserTest extends TestCase
     /**
      * Test that the default user resolver can be constructed.
      */
-    public function testConstruct()
+    public function test_construct()
     {
         $resolver = new Resolver(Request::createFromGlobals());
         $resolver->setUserResolver(function ($request) {
@@ -31,7 +31,7 @@ class UserTest extends TestCase
     /**
      * Test that the default configuration for the resolver can be customized.
      */
-    public function testConfiguration()
+    public function test_configuration()
     {
         $resolver = new Resolver(Request::createFromGlobals(), 30, 0.1, 300);
         $this->assertSame(30, $resolver->max(), 'The customized max should be int(30).');
@@ -42,7 +42,7 @@ class UserTest extends TestCase
     /**
      * Test that a runtime exception occurs if there is no route.
      */
-    public function testException()
+    public function test_exception()
     {
         $request = Request::createFromGlobals();
         $request->setRouteResolver(function () {
@@ -68,7 +68,7 @@ class UserTest extends TestCase
     /**
      * Test that a guest can have their own limits.
      */
-    public function testGuestRates()
+    public function test_guest_rates()
     {
         $resolver = new Resolver(Request::createFromGlobals(), '30|60', '0.1|1', '600|60');
 
@@ -88,7 +88,7 @@ class UserTest extends TestCase
     /**
      * Test that a user can have their own limits.
      */
-    public function testUserRates()
+    public function test_user_rates()
     {
         $resolver = new Resolver(Request::createFromGlobals(), '60|max', '1|rate', '600|duration');
 

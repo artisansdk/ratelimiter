@@ -22,15 +22,15 @@ class MiddlewareTest extends TestCase
     /**
      * Test that the middleware calls to next.
      */
-    public function testResponseHasXRateHeaders()
+    public function test_response_has_x_rate_headers()
     {
-        $cache = new Cache();
-        $limiter = new Limiter($cache, new Leaky());
-        $resolver = new Resolver();
+        $cache = new Cache;
+        $limiter = new Limiter($cache, new Leaky);
+        $resolver = new Resolver;
         $middleware = new Middleware($limiter, $resolver);
         $request = Request::createFromGlobals();
         $next = function ($request) {
-            return new Response();
+            return new Response;
         };
         $response = $middleware->handle($request, $next);
         $headers = $response->headers;
@@ -104,14 +104,14 @@ class MiddlewareTest extends TestCase
     /**
      * Test that an invalid resolver throws an exception.
      */
-    public function testInvalidResolver()
+    public function test_invalid_resolver()
     {
-        $cache = new Cache();
-        $limiter = new Limiter($cache, new Leaky());
-        $resolver = new stdClass();
+        $cache = new Cache;
+        $limiter = new Limiter($cache, new Leaky);
+        $resolver = new stdClass;
         $middleware = new Middleware($limiter, $resolver);
         $next = function ($request) {
-            return new Response();
+            return new Response;
         };
 
         try {

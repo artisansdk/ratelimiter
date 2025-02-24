@@ -21,9 +21,7 @@ class Dispatcher implements Contract
      * @param  string|array  $events
      * @param  mixed|null  $listener
      */
-    public function listen($events, $listener = null)
-    {
-    }
+    public function listen($events, $listener = null) {}
 
     /**
      * Determine if a given event has listeners.
@@ -31,18 +29,14 @@ class Dispatcher implements Contract
      * @param  string  $eventName
      * @return bool
      */
-    public function hasListeners($eventName)
-    {
-    }
+    public function hasListeners($eventName) {}
 
     /**
      * Register an event subscriber with the dispatcher.
      *
      * @param  object|string  $subscriber
      */
-    public function subscribe($subscriber)
-    {
-    }
+    public function subscribe($subscriber) {}
 
     /**
      * Dispatch an event until the first non-null response is returned.
@@ -77,34 +71,26 @@ class Dispatcher implements Contract
      * @param  string  $event
      * @param  array  $payload
      */
-    public function push($event, $payload = [])
-    {
-    }
+    public function push($event, $payload = []) {}
 
     /**
      * Flush a set of pushed events.
      *
      * @param  string  $event
      */
-    public function flush($event)
-    {
-    }
+    public function flush($event) {}
 
     /**
      * Remove a set of listeners from the dispatcher.
      *
      * @param  string  $event
      */
-    public function forget($event)
-    {
-    }
+    public function forget($event) {}
 
     /**
      * Forget all of the queued listeners.
      */
-    public function forgetPushed()
-    {
-    }
+    public function forgetPushed() {}
 
     /**
      * Get the events that were fired.
